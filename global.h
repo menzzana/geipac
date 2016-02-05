@@ -20,12 +20,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <string>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include "messages.h"
+
+#ifndef SERIAL
+  #include "mpi.h"
+#endif
 
 #define THROW_ERROR(text) throw runtime_error(global::to_string(text))
 #define THROW_ERROR_VALUE(text,value) throw runtime_error(global::to_string(boost::format(text) % value))
@@ -35,6 +42,29 @@ using namespace std;
 // global constants and functions used
 //------------------------------------------------------------------------------
 namespace global {
+  static const int MPIROOT=0;
+  template<typename T> string to_string(T value) {  //lexical_cast does funny things with double
+    stringstream s1;
+
+    s1 << value;
+    return s1.str();
+    }
+  }
+//------------------------------------------------------------------------------
+namespace CALC {
+  #define IA 16807
+  #define IM 2147483647
+  #define AM (1.0/IM)
+  #define IQ 127773
+  #define IR 2836
+  #define NTAB 32
+  #define NDIV (1+(IM-1)/NTAB)
+  #define EPS 1.2e-7
+  #define RNMX (1.0-EPS)
+  static long rseed=-123456789;
+
+  void sran1(long rseed);
+  double ran1();
   }
 //------------------------------------------------------------------------------
 // strings used for options
@@ -54,13 +84,7 @@ namespace CMDOPTIONS {
   const char *const OUTPUT_OPTION[]={"outputdir,o","outputdir","Specifies the directory where the output files will be stored. Default: None (Creates a result directory automatically)\n"};
   const char *const PERMUTATION_OPTION[]={"permutations,p","permutations","Specifies the number of case/control permutations to perform. Default: 0\n"};
   const char *const PERMUTATIONOUTPUT_OPTION[]={"permutationoutput,e","permutationouput","Sets if permutation rawdata should be printed to various files [R/T]\n"};
-  const char *const SEED_OPTION[]={"seed,s","seed","Specifies the seed used by the analysis. [Default: current system time milliseconds]\n"};
-  }
-//------------------------------------------------------------------------------
-// strings used for reporting error messages, status
-//------------------------------------------------------------------------------
-namespace PRINT_TEXT {
-  const char FILE_NOT_ENTERED[]="Some file has not been defined";
+  const char *const SEED_OPTION[]={"seed,s","seed","Specifies the random seed used by the analysis (Default: 123456789]\n"};
   }
 //------------------------------------------------------------------------------
 #endif // GLOBAL_H
