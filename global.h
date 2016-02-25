@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sstream>
 #include <stdexcept>
 #include "messages.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
 
 #ifndef SERIAL
   #include "mpi.h"
@@ -65,26 +67,6 @@ namespace CALC {
 
   void sran1(long rseed);
   double ran1();
-  }
-//------------------------------------------------------------------------------
-// strings used for options
-//------------------------------------------------------------------------------
-namespace CMDOPTIONS {
-  const char *const HELP_OPTION[]={"help,h","help","Displays available commands\n"};
-  const char *const APPN_OPTION[]={"appnegative,n","appnegative","if negative APP values should be included in total permutation calculations\n"};
-  const char *const AP_OPTION[]={"apcalculation,a","apcalculation","Sets how the attributable proportion should be calculated. [D/E/C]\n"};
-  const char *const BASE_OPTION[]={"basename,b","basename","Specify the base name of the binary input files\n"};
-  const char *const CUTOFF_OPTION[]={"cutoff,c","cutoff","Specifies the minimum number of individuals in a group [Default: 5]\n"};
-  const char *const MODEL_OPTION[]={"model,d","model","The model type to use [dom/rec]\n"};
-  const char *const INTERACTION_OPTION[]={"interactionfile,i","interactionfile","Specifies the input interaction variable file\n"};
-  const char *const LIMIT_OPTION[]={"limitfile,f","limitfile","specifies a file containing significance limits for APp and MULT permutation calculations\n"};
-  const char *const ITERATION_OPTION[]={"iterations,r","iterations","Sets the max number of iteration to perform when computing logistic regression [Default: 500]\n"};
-  const char *const THRESHOLD_OPTION[]={"threshold,t","threshold","Sets the min stable threshold when computing logistic regression [Default: 10E-3]\n"};
-  const char *const MARKER_OPTION[]={"markerfile,m","markerfile","Specifies a file containing interaction markers targeted for analysis.\n"};
-  const char *const OUTPUT_OPTION[]={"outputdir,o","outputdir","Specifies the directory where the output files will be stored. Default: None (Creates a result directory automatically)\n"};
-  const char *const PERMUTATION_OPTION[]={"permutations,p","permutations","Specifies the number of case/control permutations to perform. Default: 0\n"};
-  const char *const PERMUTATIONOUTPUT_OPTION[]={"permutationoutput,e","permutationouput","Sets if permutation rawdata should be printed to various files [R/T]\n"};
-  const char *const SEED_OPTION[]={"seed,s","seed","Specifies the random seed used by the analysis (Default: 123456789]\n"};
   }
 //------------------------------------------------------------------------------
 #endif // GLOBAL_H

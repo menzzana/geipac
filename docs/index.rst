@@ -42,20 +42,16 @@ geipac [OPTIONS]
 OPTIONS
 =======
 
-:-a,--batchsize <count>: Specifies the number of calculations
-  to perform to in each submission task.
-  Default: 200
-:-an, --appnegative <yes/no>: Set this flag if negative APP values should
+:-n, --appnegative: Set this flag if negative APP values should
   be included in total permutation
-  calculations. Default: no
-:-ap, --apcalculation <d/e/c>: Sets how the attributable proportion should be calculated.
+:-a, --apcalculation <d/e/c>: Sets how the attributable proportion should be calculated.
   D calculates the proportion of the disease
   E calculates the proportion of the effect
   C calculates the corrected attributable proportion
   which takes negative values into consideration
   according to Hössjer et. al. Biostatistics,2014.
   Default: D
-:-b,--bfile <basename>: Specifies the base name of the binary
+:-b,--basename <basename>: Specifies the base name of the binary
   input files (i.e. the name of the
   files without their file extensions:
   .bed, .bim, .fam).
@@ -73,40 +69,32 @@ OPTIONS
 :-h,--help: Displays this help text.
 :-i,--ifile <file>: Specifies the input interaction
   variable file. Default: null
-:-l,--limitfile <file>: specifies a file containing
+:-f,--limitfile <file>: specifies a file containing
   significance limits for APp and MULT
   permutation calculations.
-:-lri,--iteration <iteration>: Sets the max number of iteration to
+:-r,--iterations <iterations>: Sets the max number of iteration to
   perform when computing logistic
   regression (Default: 500)
-:-lrt,--threshold <threshold>: Sets the min stable threshold when
+:-t,--threshold <threshold>: Sets the min stable threshold when
   computing logistic regression
   (Default: 10E-3)
 :-m,--markerfile <file>: Specifies a file containing
   interaction markers targeted for
   analysis.
-:-o,--output <path>: Specifies the directory where the
+:-o,--outputdir <path>: Specifies the directory where the
   output files will be stored. Default:
   None (Creates a result directory
   automatically)
 :-p,--permutations <count>: Specifies the number of case/control
   permutations to perform. Default: 0
-:-po,--permutationoutput <R=raw permutation output, T=total permutation output>:
+:-e,--permutationoutput <R=raw permutation output, T=total permutation output>:
   Sets if permutation rawdata should be
   printed to various files (Default: No)
   With Total permutation output, the first
   row shows the original data, whereas
   the other rows are the permutated data
-:-q,--queuesize <count>: Specifies the maximum amount of tasks
-  to keep in the internal task queue.
-  Default: available cores * 20
 :-s,--seed <value>: Specifies the seed used by the PRNG.
-  Default: current system time
-  milliseconds.
-:-t,--datastoretype <type>: Specifies what data store type to use.
-  Memory (m) or File (f). Default: m
-:-w,--workers <count>: Worker thread count. Default: number
-  of available processors/cores.      
+  Default: 123456789.
 
 RECODE
 ======
