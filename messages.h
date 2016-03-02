@@ -36,6 +36,7 @@ namespace FILE_TEXT {
   const char TOTAL_PERMUTATION_RESULT[]="total_permutation_results.txt";
   const char TOTAL_PERMUTATIONS[]="total_permutations.txt";
   const char RESULT_PERMUTATION[]="results_permutation_%s.txt";
+  const char OUTPUT_DIRECTORY[]="geisa_results_";
   }
 //------------------------------------------------------------------------------
 // Status Messages

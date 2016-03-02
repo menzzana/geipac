@@ -109,6 +109,13 @@ int main(int argc, char **argv) {
           c1==GenEnvGen2I::EFFECT?GenEnvGen2I::PROPORTION_EFFECT:
           c1==GenEnvGen2I::CORRECTED?GenEnvGen2I::PROPORTION_CORRECTED:0);
         }
+      if (option_map.count(CMDOPTIONS::OUTPUT_OPTION[1])) {
+        string outputdir=option_map[CMDOPTIONS::OUTPUT_OPTION[1]].as<string>();
+
+        }
+
+
+
       if (option_map.count(CMDOPTIONS::MARKER_OPTION[1])) {
         IMarkerData *imark;
         imark=NULL;
@@ -146,6 +153,13 @@ int main(int argc, char **argv) {
       }
     if (myanalysis->param.model==GenEnvGen2I::NO_MODEL)
       THROW_ERROR(ERROR_TEXT::NO_MODEL_TYPE);
+
+		// Deleting previous result files
+		global::deleteResultFile(FILE_TEXT::RESULT);
+		global::deleteResultFile(FILE_TEXT::MARKER_PERMUTATION_RESULT);
+		global::deleteResultFile(FILE_TEXT::TOTAL_PERMUTATION_RESULT);
+		global::deleteResultFile(FILE_TEXT::TOTAL_PERMUTATIONS);
+		for (int i1=1; global::deleteResultFile(global::to_string(boost::format(FILE_TEXT::RESULT_PERMUTATION) % i1)); i1++);
 
     CleanUp(EXIT_SUCCESS);
     }

@@ -31,6 +31,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "messages.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/date_time/local_time/local_time.hpp>
 
 #ifndef SERIAL
   #include "mpi.h"
@@ -45,6 +47,8 @@ using namespace std;
 //------------------------------------------------------------------------------
 namespace global {
   static const int MPIROOT=0;
+  bool deleteResultFile(string filename);
+  string setOutputDirectory(string dirname);
   template<typename T> string to_string(T value) {  //lexical_cast does funny things with double
     stringstream s1;
 
