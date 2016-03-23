@@ -7,7 +7,7 @@ namespace CMDOPTIONS {
   const char *const HELP_OPTION[]={"help,h","help","Displays available commands\n"};
   const char *const APPN_OPTION[]={"appnegative,n","appnegative","if negative APP values should be included in total permutation calculations\n"};
   const char *const AP_OPTION[]={"apcalculation,a","apcalculation","Sets how the attributable proportion should be calculated. [D/E/C]\n"};
-  const char *const BASE_OPTION[]={"basename,b","basename","Specify the base name of the binary input files\n"};
+  const char *const BASE_OPTION[]={"basename,b","basename","Specify the base name of the plink input files\n"};
   const char *const CUTOFF_OPTION[]={"cutoff,c","cutoff","Specifies the minimum number of individuals in a group [Default: 5]\n"};
   const char *const MODEL_OPTION[]={"model,d","model","The model type to use [dom/rec]\n"};
   const char *const INTERACTION_OPTION[]={"interactionfile,i","interactionfile","Specifies the input interaction variable file\n"};
@@ -27,7 +27,13 @@ namespace ERROR_TEXT {
   const char MPI_NOT_FOUND[]="Cannot initiate MPI";
   const char NO_MODEL_TYPE[]="No model type was defined. Must be either DOM or REC";
   const char NO_BED_FILE[]="Provided binary file is not a BED file";
-  const char FILE_NOT_FOUND[]="File was not found: ";
+  const char NO_PLINK_FILES[]="Plink files data was not provided";
+  const char UNKNOWN_INDIVIDUAL[]="Interaction variable individual is not present in dataset or missing individuals in interaction variable file";
+  const char MISSING_INDIVIDUAL[]="Individual %s not found.";
+  const char NO_LIMITS[]="No limit columns could be found in file";
+  const char FILE_NOT_FOUND[]="File was not found: %s";
+  const char MISSING_INTERACTION_MARKERS[]="Missing interaction marker(s)";
+  const char MISSING_MARKER[]="Marker %s not found.";
   }
 //------------------------------------------------------------------------------
 namespace FILE_TEXT {
@@ -42,8 +48,8 @@ namespace FILE_TEXT {
 // Status Messages
 //------------------------------------------------------------------------------
 namespace STATUS_TEXT {
-  const char IMARKER[]="Analyzing interaction with marker : %1$s";
-  const char PERMUTATION_START[]="%tc Starting permutation iteration %d of %d";
+  const char IMARKER[]="Analyzing interaction with marker : %s";
+  const char PERMUTATION_START[]="%tc Starting permutation iteration %d";
   const char ORIGINAL_START[]="%tc Starting analysis of original results";
   const char WRITE_PERMUTATION[]="%tc: Writing permutation results";
   const char OUTPUT_READY[]="%tc: Ready.";
@@ -56,21 +62,21 @@ namespace STATUS_TEXT {
 // Header Messages
 //------------------------------------------------------------------------------
 namespace HEADER_TEXT {
-  const char RUN[]=        "Running JEIRA with the following parameters:";
-  const char DATA_STORE[]= "Data store:               %s";
-  const char FILE_BASE[]=  "File base:                %s";
-  const char IFILE[]=      "Interaction file:         %s";
-  const char IMARKERFILE[]="Interaction Marker file:  %s";
-  const char LIMIT[]=      "Limit file:               %s";
-  const char OUTPUT[]=     "Output directory:         %s";
-  const char PERMUTATION[]="Permutations:             %d";
-  const char SEED[]=       "Seed:                     %d";
-  const char MODEL[]=      "Model Type:               %s";
-  const char CUTOFF[]=     "Cutoff:                   %d";
-  const char ITERATIONS[]= "LR Iterations:            %d";
-  const char THRESHOLD[]=  "LR Threshold:             %f";
-  const char APPNEG[]=     "Include APP negative:     %s";
-  const char APCALC[]=     "AP Calculation method:    %s";
+  const char RUN[]=          "Running JEIRA with the following parameters:";
+  const char FILE_BASE[]=    "File base:                %s";
+  const char INTERACTION[]=  "Interaction file:         %s";
+  const char IMARKERFILE[]=  "Interaction Marker file:  %s";
+  const char NOGETGENDATA[]= "None. Taken from genotype data";
+  const char LIMIT[]=        "Limit file:               %s";
+  const char OUTPUT[]=       "Output directory:         %s";
+  const char PERMUTATION[]=  "Permutations:             %d";
+  const char SEED[]=         "Seed:                     %d";
+  const char MODEL[]=        "Model Type:               %s";
+  const char CUTOFF[]=       "Cutoff:                   %d";
+  const char ITERATIONS[]=   "LR Iterations:            %d";
+  const char THRESHOLD[]=    "LR Threshold:             %f";
+  const char APPNEG[]=       "Include APP negative:     %s";
+  const char APCALC[]=       "AP Calculation method:    %s";
   }
 //------------------------------------------------------------------------------
 #endif // MESSAGES_H

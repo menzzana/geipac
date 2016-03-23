@@ -140,6 +140,8 @@ INDID ENV COV1  TEST  HELLO
  
 First column is Individual ID, and 2nd is Environment.
 COV1, TEST and HELLO are all covariates.
+If no interaction variable file is present, the interaction will be calculated
+from the genotype data.
 
 LIMIT FILE
 ^^^^^^^^^^

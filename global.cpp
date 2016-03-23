@@ -1,28 +1,8 @@
 #include "global.h"
 //---------------------------------------------------------------------------
-bool global::deleteResultFile(string filename) {
-  if (!boost::filesystem::exists(filename))
-    return false;
-  boost::filesystem::remove(filename);
-  return true;
-  }
-//---------------------------------------------------------------------------
-string global::setOutputDirectory(string dirname) {
-  string dirname1;
-  int i1;
-
-  dirname1=dirname;
-  if (dirname1=="") {
-    boost::posix_time::ptime now=boost::posix_time::second_clock::local_time();
-    dirname1=FILE_TEXT::OUTPUT_DIRECTORY+to_string(now.date().day()+now.date().month()+now.date().year());
-    for (i1=1; boost::filesystem::exists(dirname1+to_string(i1)); i1++);
-    dirname1=dirname1+to_string(i1);
-    }
-  if (boost::filesystem::exists(dirname1))
-    return dirname1;
-  if (boost::filesystem::create_directory(dirname1))
-    return dirname1;
-  return "";
+string global::getFileName(string pathstring) {
+  boost::filesystem::path p(pathstring);
+  return p.filename().c_str();
   }
 //---------------------------------------------------------------------------
 void CALC::sran1(long seedvalue) {
@@ -64,5 +44,26 @@ double CALC::ran1() {
   if (temp>RNMX)
     return RNMX;
   return temp;
+  }
+//---------------------------------------------------------------------------
+double CALC::Chi2(double x, int n) {
+  double p,t;
+  int a,k;
+
+  if (n==0)
+    return 1;
+  p=exp(-0.5*x);
+  if ((n%2)==1)
+    p*=sqrt(2*x/M_PI);
+  for (k=n; k>=2; k-=2)
+    p*=x/(double)k;
+  t=p;
+  a=n;
+  while (t>0.000001*p) {
+    a+=2;
+    t*=x/(double)a;
+    p+=t;
+    }
+  return 1-(p<0?0:p>1?1:p);
   }
 //---------------------------------------------------------------------------

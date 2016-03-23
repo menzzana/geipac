@@ -38,8 +38,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #include "mpi.h"
 #endif
 
+#define ARRAYSIZE(array) (sizeof(array)/sizeof(*(array)))
 #define THROW_ERROR(text) throw runtime_error(global::to_string(text))
 #define THROW_ERROR_VALUE(text,value) throw runtime_error(global::to_string(boost::format(text) % value))
+#define WRITE(text) cout << text << endl
+#define WRITE_VALUE(text,value) cout << global::to_string(boost::format(text) % value) << endl
 //------------------------------------------------------------------------------
 using namespace std;
 //------------------------------------------------------------------------------
@@ -47,14 +50,23 @@ using namespace std;
 //------------------------------------------------------------------------------
 namespace global {
   static const int MPIROOT=0;
-  bool deleteResultFile(string filename);
-  string setOutputDirectory(string dirname);
+
   template<typename T> string to_string(T value) {  //lexical_cast does funny things with double
     stringstream s1;
 
     s1 << value;
     return s1.str();
     }
+//------------------------------------------------------------------------------
+  template<typename T> T **make2DArray(T **dest,int y,int x) {
+    dest=new T*[y];
+    dest[0]=new T[y*x];
+    for (int y1=1; y1<y; y1++)
+      dest[y1]=&dest[0][y1*x];
+    return dest;
+    }
+  //------------------------------------------------------------------------------
+  string getFileName(string pathstring);
   }
 //------------------------------------------------------------------------------
 namespace CALC {
@@ -71,6 +83,7 @@ namespace CALC {
 
   void sran1(long rseed);
   double ran1();
+  double Chi2(double x, int n);
   }
 //------------------------------------------------------------------------------
 #endif // GLOBAL_H

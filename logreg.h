@@ -9,21 +9,25 @@
 using namespace std;
 //------------------------------------------------------------------------------
 class LogReg {
-  private:
-    static const double ALPHA=1;
   public:
-    double **x,**xo,*y,*theta,*tmptheta;
+    static const double ALPHA=1;
+    static const double CONF_LEVEL_95=1.96;
+    double **x,**xo,*y,*theta,*tmptheta,*z,*sumofsquares;
     int dimx,dimy;
 
     LogReg();
     void createArrays(double *y,double **xo,int dimy,int dimx);
     void clearArrays();
-    double MatrixMultiply(double *x1,double *x2);
+    double matrixMultiply(double *x1,double *x2);
     double sigmoid(double z);
-    void Normalize();
-    double Cost();
-    void CalculateTheta();
-    bool GradientDescent(int iterations, double minerror);
+    void normalize();
+    double calculateCost();
+    void calculateTheta();
+    void calculateZ();
+    double stdErr(int idx);
+    double lowCI(int idx);
+    double highCI(int idx);
+    bool gradientDescent(int iterations, double minerror);
     ~LogReg();
   };
 //---------------------------------------------------------------------------
