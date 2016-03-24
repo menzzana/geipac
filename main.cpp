@@ -122,11 +122,11 @@ int main(int argc, char **argv) {
       if (option_map.count(CMDOPTIONS::OUTPUT_OPTION[1]))
         outputdir=option_map[CMDOPTIONS::OUTPUT_OPTION[1]].as<string>();
       if (option_map.count(CMDOPTIONS::MARKER_OPTION[1]))
-        imarker=imarker->loadFile<IMarkerData>(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>());
+        imarker=IMarkerData::loadFile<IMarkerData>(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>());
       if (option_map.count(CMDOPTIONS::INTERACTION_OPTION[1]))
-        ivariable=ivariable->loadFile<IVariableData>(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>());
+        ivariable=IVariableData::loadFile<IVariableData>(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>());
       if (option_map.count(CMDOPTIONS::LIMIT_OPTION[1])) {
-        limit=limit->loadFile<LimitData>(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>());
+        limit=LimitData::loadFile<LimitData>(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>());
         if (limit==NULL)
           THROW_ERROR(ERROR_TEXT::NO_LIMITS);
         }
@@ -135,8 +135,8 @@ int main(int argc, char **argv) {
         FAMData *fam;
         fam=NULL;
         bim=NULL;
-        fam=fam->loadFile<FAMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+FAM_FILE);
-        bim=bim->loadFile<BIMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BIM_FILE);
+        fam=FAMData::loadFile<FAMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+FAM_FILE);
+        bim=BIMData::loadFile<BIMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BIM_FILE);
         plink=BEDData::loadBinaryFile(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BED_FILE,fam,bim);
         }
       // Check received data
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
       myanalysis.genotype=plink->getGenotypes(myanalysis.nindividualid,myanalysis.nmarkerid);
       if (myanalysis.interactionfromfile)
         myanalysis.interaction=ivariable->get(&IVariableData::interaction,myanalysis.nindividualid);
-      myanalysis.ncovariate=ARRAYSIZE(ivariable->covariate);
+      myanalysis.ncovariate=ivariable->ncovariate;
       myanalysis.covariate=ivariable->getCovariates(myanalysis.nindividualid,myanalysis.ncovariate);
       delete imarker;
       delete limit;

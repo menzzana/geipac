@@ -38,7 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #include "mpi.h"
 #endif
 
-#define ARRAYSIZE(array) (sizeof(array)/sizeof(*(array)))
 #define THROW_ERROR(text) throw runtime_error(global::to_string(text))
 #define THROW_ERROR_VALUE(text,value) throw runtime_error(global::to_string(boost::format(text) % value))
 #define WRITE(text) cout << text << endl
@@ -58,7 +57,9 @@ namespace global {
     return s1.str();
     }
 //------------------------------------------------------------------------------
-  template<typename T> T **make2DArray(T **dest,int y,int x) {
+  template<typename T> T **make2DArray(int y,int x) {
+    T **dest;
+
     dest=new T*[y];
     dest[0]=new T[y*x];
     for (int y1=1; y1<y; y1++)

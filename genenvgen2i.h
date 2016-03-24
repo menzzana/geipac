@@ -73,7 +73,7 @@ namespace GenEnvGen2I {
       void calculateRiskFactors(int markeridx,char riskallele,int recode);
       bool isDominantOrXMale(int individualidx);
       bool calculateRiskMatrix(string *results);
-      int cleanData(double **x, double *y, int dimx);
+      int cleanData(double *y, double **x, int dimx);
       double getMULTPropability(LogReg *lr,int idx);
       void shufflePhenotype();
       ~Analysis();

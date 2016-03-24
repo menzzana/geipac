@@ -86,9 +86,9 @@ void Analysis::initialize() {
   if (param.permutations>0)
     permphenotype=new int[nindividualid];
   if (ncovariate>0) {
-    global::make2DArray(covdata1,nindividualid,MATRIX_INDEX_COV1+ncovariate);
-    global::make2DArray(covdata2,nindividualid,MATRIX_INDEX_COV2+ncovariate);
-    global::make2DArray(newcovdata,nindividualid,MATRIX_INDEX_COV2+ncovariate);
+    covdata1=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV1+ncovariate);
+    covdata2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
+    newcovdata=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
     response1=new double[nindividualid];
     response2=new double[nindividualid];
     newresponse=new double[nindividualid];
@@ -138,14 +138,23 @@ void Analysis::run(int imarkeridx) {
           }
         }
       riskabovecutoff=calculateRiskMatrix(NULL);
-      nnewdata=cleanData(covdata2,response2,MATRIX_INDEX_COV2+ncovariate);
+      nnewdata=cleanData(response2,covdata2,MATRIX_INDEX_COV2+ncovariate);
+
+      for (int i1=0; i1<nnewdata; i1++) {
+        cout<<newresponse[i1]<<"-";
+
+        for (int i2=0; i2<MATRIX_INDEX_COV2+ncovariate; i2++)
+          cout<<newcovdata[i1][i2];
+        cout<<endl;
+        }
+
+
       lr1=new LogReg();
       lr1->createArrays(newresponse,newcovdata,nnewdata,ncovariate+MATRIX_INDEX_COV2);
-      lr1->clearArrays();
       lr1->normalize();
       belowthreshold=lr1->gradientDescent(param.iterations,param.threshold);
       if (riskabovecutoff) {
-        nnewdata=cleanData(covdata1,response1,MATRIX_INDEX_COV1+ncovariate);
+        nnewdata=cleanData(response1,covdata1,MATRIX_INDEX_COV1+ncovariate);
         lr2=new LogReg();
         lr2->createArrays(newresponse,newcovdata,nnewdata,ncovariate+MATRIX_INDEX_COV1);
         lr2->clearArrays();
@@ -279,6 +288,7 @@ void Analysis::calculateRiskFactors(int markeridx,char riskallele,int recode) {
   }
 //------------------------------------------------------------------------------
 bool Analysis::calculateRiskMatrix(string *results) {
+  static int NINDIVIDUALTYPES=8;
   int affstatus;
 
   int individualtypes[]={0,0,0,0,0,0,0,0};
@@ -337,17 +347,17 @@ bool Analysis::calculateRiskMatrix(string *results) {
     results[RESULT_COLUMNS::IND11_0]=individualtypes[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0];
     results[RESULT_COLUMNS::IND11_1]=individualtypes[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0];
     }
-  for (int i1=0; i1<ARRAYSIZE(individualtypes); i1++)
+  for (int i1=0; i1<NINDIVIDUALTYPES; i1++)
     if (individualtypes[i1]<=param.cutoff)
       return false;
   return true;
   }
 //------------------------------------------------------------------------------
-int Analysis::cleanData(double **x, double *y, int dimx) {
+int Analysis::cleanData(double *y, double **x, int dimx) {
   int y2,x1;
 
   for (int y1=y2=0; y1<nindividualid; y1++) {
-    if (individualexist[y1])
+    if (!individualexist[y1])
       continue;
     for (x1=0; x1<dimx; x1++)
       if (x[y1][x1]==NO_COVARIATE)

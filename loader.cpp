@@ -181,9 +181,6 @@ BEDData::BEDData() {
   }
 //---------------------------------------------------------------------------
 BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim) {
-  static const char MAGIC1=0x6c;
-  static const char MAGIC2=0x1b;
-
   char c1,c2;
   bool individual_major;
   ifstream fpr;
@@ -192,25 +189,30 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
   FAMData *fam1;
 
   try {
-    fpr.open(filename.c_str());
+    fpr.open(filename.c_str(),ios::binary);
     if (!fpr.good())
       THROW_ERROR_VALUE(ERROR_TEXT::FILE_NOT_FOUND,filename);
-    if (fpr.get()!=MAGIC1 && fpr.get()!=MAGIC2)
+    fpr.read(&c1,1);
+    fpr.read(&c2,1);
+    if (c1!=MAGIC1 && c2!=MAGIC2)
       THROW_ERROR(ERROR_TEXT::NO_BED_FILE);
-    individual_major=fpr.get()>0;
+    fpr.read(&c1,1);
+    individual_major=(c1==0);
     data1=data2=NULL;
     fam1=firstfam;
     bim1=firstbim;
-    while (fpr.get(c1)) {
-      for (int i1=0; i1<4; i1++) {
+    while (fpr.read(&c1,1)) {
+      for (int i1=0; i1<GENOTYPES_PER_BYTE; i1++) {
         if (bim1==NULL) {
           bim1=firstbim;
-          if (!individual_major)
+          fam1=fam1->Next;
+          if (individual_major)
             break;
           }
         if (fam1==NULL) {
           fam1=firstfam;
-          if (individual_major)
+          bim1=bim1->Next;
+          if (!individual_major)
             break;
           }
         data2=data2->addEntry<BEDData>();
@@ -219,7 +221,7 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
         data2->fam=fam1;
         data2->bim=bim1;
         data2->genotype=(c1 & ALL_BIT_SET);
-        c1=(c1>>2);
+        c1=(c1>>BITS_PER_GENOTYPE);
         if (individual_major)
           bim1=bim1->Next;
         else
@@ -241,7 +243,7 @@ int **BEDData::getGenotypes(int y,int x) {
 
   if (y==0 || x==0)
     return NULL;
-  genotypedest=global::make2DArray(genotypedest,y,x);
+  genotypedest=global::make2DArray<int>(y,x);
   for (bd1=this; bd1!=NULL; bd1=bd1->Next)
     genotypedest[bd1->fam->index][bd1->bim->index]=bd1->genotype;
   return genotypedest;
@@ -255,6 +257,7 @@ IVariableData::IVariableData() {
   individualid="";
   interaction=ENV_NOVALUE;
   covariate=NULL;
+  ncovariate=0;
   Next=NULL;
   }
 //---------------------------------------------------------------------------
@@ -281,8 +284,9 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
     if (env_col>=0)
       if (!boost::iequals(splitdata[env_col].c_str(),NA))
         data1->interaction=atoi(splitdata[env_col].c_str());
-    data1->covariate=new int[ncol-(env_col<0?1:2)];
-    for (int i1=1,i2=0; i1<ncol; i1++) {
+    data1->ncovariate=ncol-(env_col<0?1:2);
+    data1->covariate=new int[data1->ncovariate];
+    for (int i1=0,i2=0; i1<ncol; i1++) {
       if (i1==env_col || i1==indid_col)
         continue;
       if (boost::iequals(splitdata[i1].c_str(),NA))
@@ -315,7 +319,7 @@ int **IVariableData::getCovariates(int y,int x) {
 
   if (y==0 || x==0)
     return NULL;
-  covdest=global::make2DArray(covdest,y,x);
+  covdest=global::make2DArray<int>(y,x);
   for (y1=0,ivd1=this; ivd1!=NULL; ivd1=ivd1->Next,y1++)
     for (x1=0; x1<x; x1++)
       covdest[y1][x1]=ivd1->covariate[x1];

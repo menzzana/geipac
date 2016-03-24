@@ -11,7 +11,9 @@ void LogReg::createArrays(double *y,double **xo,int dimy,int dimx) {
   this->dimx=dimx+1;
   this->y=y;
   this->xo=xo;
-  x=global::make2DArray(x,this->dimy,this->dimx);
+  x=global::make2DArray<double>(this->dimy,this->dimx);
+  for (int y1=0; y1<dimy; y1++)
+    x[y1][0]=1;
   theta=new double[this->dimx];
   tmptheta=new double[this->dimx];
   z=new double[this->dimx];
@@ -20,8 +22,8 @@ void LogReg::createArrays(double *y,double **xo,int dimy,int dimx) {
 //---------------------------------------------------------------------------
 void LogReg::clearArrays() {
   fill_n(theta,dimx,0);
-  for (int y1=0; y1<dimy; y1++)
-    x[y1][0]=1;
+  fill_n(z,dimx,0);
+  fill_n(sumofsquares,dimx,0);
   }
 //---------------------------------------------------------------------------
 double LogReg::matrixMultiply(double *n1,double *n2) {
@@ -86,7 +88,7 @@ void LogReg::calculateTheta() {
 void LogReg::calculateZ() {
   for (int x1=0; x1<dimx; x1++)
     for (int y1=0; y1<dimy; y1++)
-      sumofsquares[x1]=(y1==0?0:sumofsquares[x1])+pow(theta[x1]-x[y1][x1],2);
+      sumofsquares[x1]+=pow(theta[x1]-x[y1][x1],2);
   for (int x1=0; x1<dimx; x1++) {
     z[x1]=theta[x1]/stdErr(x1);
     }

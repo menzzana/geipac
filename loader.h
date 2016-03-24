@@ -17,8 +17,8 @@ class Loader {
 
     static bool deleteResultFile(string filename);
     static string setOutputDirectory(string dirname);
-    string *splitDataString(string fstr, int ndatacolumns);
-    int getColumnSize(string fstr);
+    static string *splitDataString(string fstr, int ndatacolumns);
+    static int getColumnSize(string fstr);
 //------------------------------------------------------------------------------
 // Class templates
 //------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ class Loader {
       return dest;
       }
 //---------------------------------------------------------------------------
-    template<typename T> T *loadFile(string filename) {
+    template<typename T> static T *loadFile(string filename) {
       ifstream fpr;
       string fstr;
       int nrows;
@@ -73,7 +73,7 @@ class Loader {
         fpr.open(filename.c_str());
         if (!fpr.good())
           THROW_ERROR_VALUE(ERROR_TEXT::FILE_NOT_FOUND,filename);
-        data1=data2=(T *)this;
+        data1=data2=NULL;
         for (nrows=0; getline(fpr,fstr); nrows++) {
           data2=data2->getSingleRowData(fstr,data1);
           if (data2==NULL)
@@ -153,6 +153,10 @@ class BEDData : public Loader {
   public:
     #define BED_FILE ".bed"
     static const char ALL_BIT_SET=3;
+    static const char MAGIC1=0x6c;
+    static const char MAGIC2=0x1b;
+    static const char GENOTYPES_PER_BYTE=4;
+    static const char BITS_PER_GENOTYPE=2;
 
     int genotype;
     FAMData *fam;
@@ -173,7 +177,7 @@ class IVariableData : public Loader {
     static const int ENV_NOVALUE=-1;
     static const int COV_NOVALUE=0;
     string individualid;
-    int interaction,*covariate;
+    int interaction,*covariate,ncovariate;
     IVariableData *Next;
 
     IVariableData();
