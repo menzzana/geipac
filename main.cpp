@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     myanalysis.initialize();
     GenEnvGen2I::Analysis::printResults(cout,NULL);
     for (int imarkeridx=0; imarkeridx<myanalysis.nimarkerid; imarkeridx++) {
-      WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.getInteractionMarkerName(imarkeridx));
+      WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.markerid[myanalysis.imarkerid[imarkeridx]]);
       myanalysis.run(myanalysis.imarkerid[imarkeridx]);
       }
     CleanUp(EXIT_SUCCESS);

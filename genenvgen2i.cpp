@@ -87,14 +87,14 @@ void Analysis::initialize() {
   logreg2.createArrays(cleanrephenotype,cleancovdata,MATRIX_INDEX_COV1+ncovariate);
   }
 //------------------------------------------------------------------------------
-void Analysis::run(int imarkeridx) {
+void Analysis::run(int interactivemarkeridx) {
   bool belowthreshold,riskabovecutoff;
   int recode;
   string results[RESULT_COLUMNS::LENGTH_RESULTS];
   char riskallele;
 
   CALC::sran1(param.randomseed);
-  setInteraction(imarkeridx);
+  setInteraction(interactivemarkeridx);
   for (int permidx=0; permidx<=param.permutations; permidx++) {
     if (permidx==0)
       WRITE(STATUS_TEXT::ORIGINAL_START);
@@ -108,7 +108,7 @@ void Analysis::run(int imarkeridx) {
       results[RESULT_COLUMNS::STABLELRM]="NA";
       results[RESULT_COLUMNS::STABLELRA]="NA";
       results[RESULT_COLUMNS::PERM]=global::to_string(param.permutations);
-      results[RESULT_COLUMNS::INTERACTION]=getInteractionMarkerName(imarkeridx);
+      results[RESULT_COLUMNS::INTERACTION]=markerid[interactivemarkeridx];
       results[RESULT_COLUMNS::CHR]=chromosome[markeridx];
       results[RESULT_COLUMNS::SNP]=markerid[markeridx];
       riskallele=calculateRiskAllele(markeridx,results);
@@ -116,6 +116,38 @@ void Analysis::run(int imarkeridx) {
       calculateRiskFactors(markeridx,riskallele,recode);
       riskabovecutoff=calculateRiskMatrix(NULL);
       logreg1.dimy=cleanData(markeridx,rephenotype,covdata2,MATRIX_INDEX_COV2+ncovariate);
+
+
+
+      cout <<markerid[interactivemarkeridx]<<"\t"<<markerid[markeridx]<<endl;
+      for (int y2=0; y2<nindividualid; y2++) {
+        for (int x2=0; x2<nmarkerid; x2++)
+          cout<<genotype[y2][x2]<<"|";
+        cout<<endl;
+        }
+      cout<<"--------------------------------------------------"<<endl;
+
+/*
+      cout<<riskallele<<endl;
+      for (int y2=0; y2<nindividualid; y2++) {
+        cout<<genotype[y2][imarkeridx]<<"_";
+        cout<<phenotype[y2]<<":";
+        cout<<interaction[y2]<<"_";
+        for (int x2=0; x2<MATRIX_INDEX_COV1+ncovariate; x2++)
+          cout<<covdata1[y2][x2]<<",";
+        cout<<endl;
+        }
+      cout <<"|||||||||||||||||||||||||||||||||||||||||||||||||"<<endl;
+
+
+/*
+      for (int i1=0; i1<nnewdata; i1++) {
+        cout<<newresponse[i1]<<":";
+        for (int i2=0; i2<MATRIX_INDEX_COV2+ncovariate; i2++)
+          cout<<newcovdata[i1][i2]<<".";
+        cout<<endl;
+        }
+*/
 
 
       logreg1.clearArrays();
@@ -192,11 +224,7 @@ void Analysis::alleleSummaryCount(int *alleles,int markeridx) {
     }
   }
 //------------------------------------------------------------------------------
-string Analysis::getInteractionMarkerName(int imarkeridx) {
-  return markerid[imarkerid[imarkeridx]];
-  }
-//------------------------------------------------------------------------------
-void Analysis::setInteraction(int imarkeridx) {
+void Analysis::setInteraction(int interactivemarkeridx) {
   double ratioriskalleleprimary,ratioriskallelesecondary;
   int riskhomozygote;
   int alleles[]={0,0,0,0};
@@ -207,15 +235,15 @@ void Analysis::setInteraction(int imarkeridx) {
     }
   if (imarkinteraction==NULL)
     imarkinteraction=new int[nindividualid];
-  alleleSummaryCount(alleles,imarkeridx);
+  alleleSummaryCount(alleles,interactivemarkeridx);
   ratioriskalleleprimary=(double)alleles[INDEX_CASE_PRIMARY]/(double)alleles[INDEX_CONTROL_PRIMARY];
   ratioriskallelesecondary=(double)alleles[INDEX_CASE_SECONDARY]/(double)alleles[INDEX_CONTROL_SECONDARY];
   riskhomozygote=(ratioriskalleleprimary>ratioriskallelesecondary?HOMOZYGOTE_PRIMARY:HOMOZYGOTE_SECONDARY);
   for (int i1=0; i1<nindividualid; i1++) {
     imarkinteraction[i1]=NA_INTERACTION;
-    if (!validGeneticData(i1,imarkeridx))
+    if (!validGeneticData(i1,interactivemarkeridx))
       continue;
-    switch (genotype[i1][imarkeridx]) {
+    switch (genotype[i1][interactivemarkeridx]) {
       case HOMOZYGOTE_PRIMARY:
         imarkinteraction[i1]=(riskhomozygote==HOMOZYGOTE_PRIMARY?INTERACTION:NO_INTERACTION);
         break;
@@ -223,7 +251,7 @@ void Analysis::setInteraction(int imarkeridx) {
         imarkinteraction[i1]=(riskhomozygote==HOMOZYGOTE_SECONDARY?INTERACTION:NO_INTERACTION);
         break;
       case HETEROZYGOTE:
-        imarkinteraction[i1]=(isDominantOrXMale(i1,imarkeridx)?INTERACTION:NO_INTERACTION);
+        imarkinteraction[i1]=(isDominantOrXMale(i1,interactivemarkeridx)?INTERACTION:NO_INTERACTION);
         break;
       }
     }

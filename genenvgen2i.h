@@ -65,10 +65,9 @@ namespace GenEnvGen2I {
 
       Analysis();
       ~Analysis();
-      void setInteraction(int imarkeridx);
-      string getInteractionMarkerName(int imarkeridx);
+      void setInteraction(int interactivemarkeridx);
       void initialize();
-      void run(int interactionmarkeridx);
+      void run(int interactivemarkeridx);
       void alleleSummaryCount(int *alleles,int markeridx);
       bool validIndividualData(int individualidx,int markeridx);
       bool validGeneticData(int individualidx,int markeridx);
