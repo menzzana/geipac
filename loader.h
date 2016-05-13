@@ -46,11 +46,11 @@ class Loader {
       T *tl1;
       int i1;
 
-      for (tl1=(T *)this,i1=1; tl1->Next!=NULL; tl1=tl1->Next,i1++);
+      for (tl1=(T *)this,i1=0; tl1!=NULL; tl1=tl1->Next,i1++);
       return i1;
       }
 //------------------------------------------------------------------------------
-    template<typename T, typename K> T* get(T K::*pmember,int length) {
+    template<typename T, typename K> T *get(T K::*pmember,int length) {
       K *tl1;
       T *dest;
       int i1;
@@ -62,11 +62,24 @@ class Loader {
         dest[i1]=tl1->*pmember;
       return dest;
       }
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+    template<typename T, typename K> T **get(T *K::*pmember,int length,int column) {
+      K *tl1;
+      T **dest;
+      int y1,x1;
+
+      if (length==0)
+        return NULL;
+      dest=global::make2DArray<T>(length,column);
+      for (tl1=(K *)this,y1=0; tl1!=NULL; tl1=tl1->Next,y1++)
+        for (x1=0; x1<column; x1++)
+          dest[y1][x1]=(tl1->*pmember)[x1];
+      return dest;
+      }
+//------------------------------------------------------------------------------
     template<typename T> static T *loadFile(string filename) {
       ifstream fpr;
       string fstr;
-      int nrows;
       T *data1,*data2;
 
       try {
@@ -74,7 +87,10 @@ class Loader {
         if (!fpr.good())
           THROW_ERROR_VALUE(ERROR_TEXT::FILE_NOT_FOUND,filename);
         data1=data2=NULL;
-        for (nrows=0; getline(fpr,fstr); nrows++) {
+        while (getline(fpr,fstr)) {
+          fstr=boost::algorithm::trim_copy(fstr);
+          if (fstr.length()==0)
+            continue;
           data2=data2->getSingleRowData(fstr,data1);
           if (data2==NULL)
             continue;
@@ -89,7 +105,7 @@ class Loader {
         return NULL;
         }
       }
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
   };
 //------------------------------------------------------------------------------
 class IMarkerData : public Loader {
@@ -98,8 +114,8 @@ class IMarkerData : public Loader {
     IMarkerData *Next;
 
     IMarkerData();
-    IMarkerData *getSingleRowData(string fstr,IMarkerData *first);
     ~IMarkerData();
+    IMarkerData *getSingleRowData(string fstr,IMarkerData *first);
   };
 //------------------------------------------------------------------------------
 class LimitData : public Loader {
@@ -111,13 +127,13 @@ class LimitData : public Loader {
     LimitData *Next;
 
     LimitData();
-    LimitData *getSingleRowData(string fstr,...);
     ~LimitData();
+    LimitData *getSingleRowData(string fstr,...);
   };
 //------------------------------------------------------------------------------
 class FAMData : public Loader {
   public:
-    enum fam_file_position {FAM_FAMILYID,FAM_INDIVIDUALID,FAM_PATERNALID,FAM_MATERNAL_ID,FAM_GENDER,FAM_PHENOTYPE};
+    enum POSITION {FAMILYID,INDIVIDUALID,PATERNALID,MATERNAL_ID,GENDER,PHENOTYPE};
     static const int MAX_COLUMNS=6;
     #define FAM_FILE ".fam"
 
@@ -128,13 +144,13 @@ class FAMData : public Loader {
     FAMData *Next;
 
     FAMData();
-    FAMData *getSingleRowData(string fstr,...);
     ~FAMData();
+    FAMData *getSingleRowData(string fstr,...);
   };
 //------------------------------------------------------------------------------
 class BIMData : public Loader {
   public:
-    enum bim_file_position {BIM_CHROMOSOME,BIM_MARKER,BIM_GENE_DISTANCE,BIM_BASE_POS,BIM_ALLELE1,BIM_ALLELE2};
+    enum POSITION {CHROMOSOME,MARKER,GENE_DISTANCE,BASE_POS,ALLELE1,ALLELE2};
     static const int MAX_COLUMNS=6;
     #define BIM_FILE ".bim"
 
@@ -144,9 +160,9 @@ class BIMData : public Loader {
     BIMData *Next;
 
     BIMData();
+    ~BIMData();
     BIMData *getSingleRowData(string fstr,...);
     bool areInteractionMarkersPresent(IMarkerData *imarker);
-    ~BIMData();
   };
 //------------------------------------------------------------------------------
 class BEDData : public Loader {
@@ -164,9 +180,9 @@ class BEDData : public Loader {
     BEDData *Next;
 
     BEDData();
+    ~BEDData();
     static BEDData *loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim);
     int **getGenotypes(int y,int x);
-    ~BEDData();
   };
 //------------------------------------------------------------------------------
 class IVariableData : public Loader {
@@ -181,11 +197,10 @@ class IVariableData : public Loader {
     IVariableData *Next;
 
     IVariableData();
+    ~IVariableData();
     IVariableData *getSingleRowData(string fstr,...);
     bool areAllIndividualPresent(FAMData *famdata);
-    int **getCovariates(int y,int x);
     bool areInteractionsPresent();
-    ~IVariableData();
   };
 //------------------------------------------------------------------------------
 #endif // LOADER_H

@@ -40,8 +40,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define THROW_ERROR(text) throw runtime_error(global::to_string(text))
 #define THROW_ERROR_VALUE(text,value) throw runtime_error(global::to_string(boost::format(text) % value))
-#define WRITE(text) cout << text << endl
-#define WRITE_VALUE(text,value) cout << global::to_string(boost::format(text) % value) << endl
+#define WRITE(text) clog << text << endl
+#define WRITE_VALUE(text,value) clog << global::to_string(boost::format(text) % value) << endl
 //------------------------------------------------------------------------------
 using namespace std;
 //------------------------------------------------------------------------------

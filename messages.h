@@ -49,34 +49,36 @@ namespace FILE_TEXT {
 //------------------------------------------------------------------------------
 namespace STATUS_TEXT {
   const char IMARKER[]="Analyzing interaction with marker : %s";
-  const char PERMUTATION_START[]="%tc Starting permutation iteration %d";
-  const char ORIGINAL_START[]="%tc Starting analysis of original results";
-  const char WRITE_PERMUTATION[]="%tc: Writing permutation results";
-  const char OUTPUT_READY[]="%tc: Ready.";
-  const char COMPLETED_ITERATION[]="%tc: Completed iteration %d of %d";
+  const char PERMUTATION_START[]="Starting permutation iteration %d";
+  const char ORIGINAL_START[]="Starting analysis of original results";
+  const char WRITE_PERMUTATION[]="Writing permutation results";
+  const char OUTPUT_READY[]="Ready.";
+  const char COMPLETED_ITERATION[]="Completed iteration %d of %d";
   const char POSITIVE_CONVERGENCE[]="Yes";
   const char NEGATIVE_CONVERGENCE[]="No";
-  const char FINISH[]="%tc Finished";
+  const char FINISH[]="Finished";
   }
 //------------------------------------------------------------------------------
 // Header Messages
 //------------------------------------------------------------------------------
 namespace HEADER_TEXT {
-  const char RUN[]=          "Running JEIRA with the following parameters:";
-  const char FILE_BASE[]=    "File base:                %s";
-  const char INTERACTION[]=  "Interaction file:         %s";
-  const char IMARKERFILE[]=  "Interaction Marker file:  %s";
-  const char NOGETGENDATA[]= "None. Taken from genotype data";
-  const char LIMIT[]=        "Limit file:               %s";
-  const char OUTPUT[]=       "Output directory:         %s";
-  const char PERMUTATION[]=  "Permutations:             %d";
-  const char SEED[]=         "Seed:                     %d";
-  const char MODEL[]=        "Model Type:               %s";
-  const char CUTOFF[]=       "Cutoff:                   %d";
-  const char ITERATIONS[]=   "LR Iterations:            %d";
-  const char THRESHOLD[]=    "LR Threshold:             %f";
-  const char APPNEG[]=       "Include APP negative:     %s";
-  const char APCALC[]=       "AP Calculation method:    %s";
+  const char RUN[]=              "Running GEIPAC with the following parameters:";
+  const char FILE_BASE[]=        "File base:                %s";
+  const char INTERACTIONFILE[]=  "Interaction file:         %s";
+  const char IMARKERFILE[]=      "Interaction Marker file:  %s";
+  const char INTERACTION[]=      "Interaction:              %s";
+  const char FROMGENEDATA[]="From genetic data";
+  const char FROMVARFILE[]="From interaction variable file";
+  const char LIMIT[]=            "Limit file:               %s";
+  const char OUTPUT[]=           "Output directory:         %s";
+  const char PERMUTATION[]=      "Permutations:             %d";
+  const char SEED[]=             "Seed:                     %d";
+  const char MODEL[]=            "Model Type:               %s";
+  const char CUTOFF[]=           "Cutoff:                   %d";
+  const char ITERATIONS[]=       "LR Iterations:            %d";
+  const char THRESHOLD[]=        "LR Threshold:             %f";
+  const char APPNEG[]=           "Include APP negative:     %s";
+  const char APCALC[]=           "AP Calculation method:    %s";
   }
 //------------------------------------------------------------------------------
 #endif // MESSAGES_H

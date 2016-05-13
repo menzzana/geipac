@@ -148,7 +148,6 @@ int main(int argc, char **argv) {
         THROW_ERROR(ERROR_TEXT::MISSING_INTERACTION_MARKERS);
       if (!ivariable->areAllIndividualPresent(plink->fam))
         THROW_ERROR(ERROR_TEXT::UNKNOWN_INDIVIDUAL);
-      myanalysis.interactionfromfile=ivariable->areInteractionsPresent();
       // set output
       outputdir=Loader::setOutputDirectory(outputdir);
       Loader::deleteResultFile(FILE_TEXT::RESULT);
@@ -159,8 +158,9 @@ int main(int argc, char **argv) {
       // Print some information message.
       WRITE(HEADER_TEXT::RUN);
       WRITE_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
-      WRITE_VALUE(HEADER_TEXT::INTERACTION,(ivariable==NULL?HEADER_TEXT::NOGETGENDATA:global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
-      WRITE_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==NULL?HEADER_TEXT::NOGETGENDATA:global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
+      WRITE_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==NULL?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
+      WRITE_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==NULL?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
+      WRITE_VALUE(HEADER_TEXT::INTERACTION,(imarker==NULL || ivariable==NULL?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
       WRITE_VALUE(HEADER_TEXT::LIMIT,(limit==NULL?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
       WRITE_VALUE(HEADER_TEXT::OUTPUT,option_map[CMDOPTIONS::OUTPUT_OPTION[1]].as<string>());
       WRITE_VALUE(HEADER_TEXT::PERMUTATION,myanalysis.param.permutations);
@@ -195,10 +195,10 @@ int main(int argc, char **argv) {
       myanalysis.markerid=plink->bim->get(&BIMData::markerid,myanalysis.nmarkerid);
       myanalysis.chromosome=plink->bim->get(&BIMData::chromosome,myanalysis.nmarkerid);
       myanalysis.genotype=plink->getGenotypes(myanalysis.nindividualid,myanalysis.nmarkerid);
-      if (myanalysis.interactionfromfile)
-        myanalysis.interaction=ivariable->get(&IVariableData::interaction,myanalysis.nindividualid);
+      if (ivariable->areInteractionsPresent() && imarker==NULL)
+        myanalysis.interactionfromfile=ivariable->get(&IVariableData::interaction,myanalysis.nindividualid);
       myanalysis.ncovariate=ivariable->ncovariate;
-      myanalysis.covariate=ivariable->getCovariates(myanalysis.nindividualid,myanalysis.ncovariate);
+      myanalysis.covariate=ivariable->get(&IVariableData::covariate,myanalysis.nindividualid,myanalysis.ncovariate);
       delete imarker;
       delete limit;
       delete plink->fam;
@@ -208,11 +208,11 @@ int main(int argc, char **argv) {
       }
     // Analysis
     myanalysis.initialize();
+    GenEnvGen2I::Analysis::printResults(cout,NULL);
     for (int imarkeridx=0; imarkeridx<myanalysis.nimarkerid; imarkeridx++) {
       WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.imarkerid[imarkeridx]);
       myanalysis.run(imarkeridx);
       }
-
     CleanUp(EXIT_SUCCESS);
     }
   catch(exception &e) {

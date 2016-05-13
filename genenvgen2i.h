@@ -19,14 +19,13 @@ namespace GenEnvGen2I {
   enum PERMUTATION_OUTPUT_TYPE { PERMUTATION_RAWDATA, PERMUTATION_TOTALDATA };
   enum PHENOTYPE_TYPE {PHENOTYPE_UNKNOWN, PHENOTYPE_UNAFFECTED,PHENOTYPE_AFFECTED};
   enum GENDER_TYPE {GENDER_UNKNOWN,GENDER_MALE,GENDER_FEMALE};
-  enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_CONTROL_CASE_OFFSET=1,INDEX_NA=0};
-  enum MATRIX_TYPE {MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_A0B0,MATRIX_INDEX_COV2};
-  enum MATRIX_MULT_TYPE {MATRIX_INDEX_A1m,MATRIX_INDEX_B1m,MATRIX_INDEX_A1mB1m,MATRIX_INDEX_COV1};
+  enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_POSITION_OFFSET=1,INDEX_NA=0};
+  enum MATRIX_TYPE {LRTHETA0,MATRIX_INDEX_A0B0,MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_COV2};
+  enum MATRIX_MULT_TYPE {LRTHETA0_M,MATRIX_INDEX_A1m,MATRIX_INDEX_B1m,MATRIX_INDEX_A1mB1m,MATRIX_INDEX_COV1};
   enum ZYGOSITY_TYPE {HOMOZYGOTE_PRIMARY, ZYGOTE_UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY};
   enum RISKFACTOR_TYPE {NO_RISK,RISK,NA_RISK=-1};
-  enum INTERACTION_TYPE {NO_INTERACTION,INTERACTION,MISSING_INTERACTION=-1};
+  enum INTERACTION_TYPE {NO_INTERACTION,INTERACTION,NA_INTERACTION=-1};
   #define CHROMOSOME_X "X"
-  static const int NO_COVARIATE=-1;
   static const char DISEASE='d';
   static const char EFFECT='e';
   static const char CORRECTED='c';
@@ -55,28 +54,31 @@ namespace GenEnvGen2I {
         } param;
 
       string *markerid,*imarkerid,*individualid,*chromosome;
-      int *interaction,**covariate;
+      int *interaction,*interactionfromfile,*imarkinteraction,**covariate;
       double *cutoff_mult,*cutoff_app;
       int *gender,*phenotype,*permphenotype,**genotype;
       char *allele1,*allele2;
       int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate,*riskfactors;
-      bool interactionfromfile,*individualexist;
-      double **covdata1,**covdata2,**newcovdata;
-      double *response1,*response2,*newresponse;
+      double **covdata1,**covdata2,**cleancovdata;
+      double *rephenotype,*cleanresponse;
+      LogisticRegression logreg1,logreg2;
 
       Analysis();
-      void setInteractionFromData(int imarkeridx);
+      ~Analysis();
+      void setInteraction(int imarkeridx);
       void initialize();
       void run(int imarkeridx);
-      void setReducedDataMask(int markeridx);
+      void alleleSummaryCount(int *alleles,int markeridx);
+      bool validIndividualData(int individualidx,int markeridx);
+      bool validGeneticData(int individualidx,int markeridx);
       char calculateRiskAllele(int markeridx, string *results);
       void calculateRiskFactors(int markeridx,char riskallele,int recode);
       bool isDominantOrXMale(int individualidx);
       bool calculateRiskMatrix(string *results);
-      int cleanData(double *y, double **x, int dimx);
-      double getMULTPropability(LogReg *lr,int idx);
+      int cleanData(int markeridx,double *y, double **x, int dimx);
       void shufflePhenotype();
-      ~Analysis();
+      void swapInteractions();
+      static void printResults(ostream &stream,string *results);
     };
   }
 //------------------------------------------------------------------------------

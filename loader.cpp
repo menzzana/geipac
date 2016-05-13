@@ -51,6 +51,10 @@ IMarkerData::IMarkerData() {
   Next=NULL;
   }
 //---------------------------------------------------------------------------
+IMarkerData::~IMarkerData() {
+  delete Next;
+  }
+//---------------------------------------------------------------------------
 IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
   IMarkerData *data1;
 
@@ -60,14 +64,14 @@ IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
   data1->markerid=boost::algorithm::trim_copy(fstr);
   return data1;
   }
-//---------------------------------------------------------------------
-IMarkerData::~IMarkerData() {
-  delete Next;
-  }
 //---------------------------------------------------------------------------
 LimitData::LimitData() {
   cutoff_app=cutoff_mult=0;
   Next=NULL;
+  }
+//---------------------------------------------------------------------------
+LimitData::~LimitData() {
+  delete Next;
   }
 //---------------------------------------------------------------------------
 LimitData *LimitData::getSingleRowData(string fstr,...) {
@@ -95,16 +99,16 @@ LimitData *LimitData::getSingleRowData(string fstr,...) {
   return data1;
   }
 //---------------------------------------------------------------------------
-LimitData::~LimitData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 FAMData::FAMData() {
   gender=GenEnvGen2I::GENDER_UNKNOWN;
   phenotype=GenEnvGen2I::PHENOTYPE_UNKNOWN;
   individualid="";
   index=0;
   Next=NULL;
+  }
+//---------------------------------------------------------------------------
+FAMData::~FAMData() {
+  delete Next;
   }
 //---------------------------------------------------------------------------
 FAMData *FAMData::getSingleRowData(string fstr,...) {
@@ -114,17 +118,13 @@ FAMData *FAMData::getSingleRowData(string fstr,...) {
 
   splitdata=splitDataString(fstr,MAX_COLUMNS);
   data1=this->addEntry<FAMData>();
-  data1->individualid=splitdata[FAM_INDIVIDUALID];
-  data1->gender=atoi(splitdata[FAM_GENDER].c_str());
-  data1->phenotype=atoi(splitdata[FAM_PHENOTYPE].c_str());
+  data1->individualid=splitdata[POSITION::INDIVIDUALID];
+  data1->gender=atoi(splitdata[POSITION::GENDER].c_str());
+  data1->phenotype=atoi(splitdata[POSITION::PHENOTYPE].c_str());
   data1->index=index1;
   index1++;
   delete[] splitdata;
   return data1;
-  }
-//---------------------------------------------------------------------------
-FAMData::~FAMData() {
-  delete Next;
   }
 //---------------------------------------------------------------------------
 BIMData::BIMData() {
@@ -134,6 +134,10 @@ BIMData::BIMData() {
   Next=NULL;
   }
 //---------------------------------------------------------------------------
+BIMData::~BIMData() {
+  delete Next;
+  }
+//---------------------------------------------------------------------------
 BIMData *BIMData::getSingleRowData(string fstr,...) {
   BIMData *data1;
   string *splitdata;
@@ -141,10 +145,10 @@ BIMData *BIMData::getSingleRowData(string fstr,...) {
 
   splitdata=splitDataString(fstr,MAX_COLUMNS);
   data1=this->addEntry<BIMData>();
-  data1->chromosome=splitdata[BIM_CHROMOSOME];
-  data1->markerid=splitdata[BIM_MARKER];
-  data1->allele1=splitdata[BIM_ALLELE1].c_str()[0];
-  data1->allele2=splitdata[BIM_ALLELE2].c_str()[0];
+  data1->chromosome=splitdata[POSITION::CHROMOSOME];
+  data1->markerid=splitdata[POSITION::MARKER];
+  data1->allele1=splitdata[POSITION::ALLELE1].c_str()[0];
+  data1->allele2=splitdata[POSITION::ALLELE2].c_str()[0];
   data1->index=index1;
   index1++;
   delete[] splitdata;
@@ -169,15 +173,15 @@ bool BIMData::areInteractionMarkersPresent(IMarkerData *imarker) {
   return true;
   }
 //---------------------------------------------------------------------------
-BIMData::~BIMData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 BEDData::BEDData() {
   genotype=GenEnvGen2I::ZYGOTE_UNKNOWN;
   bim=NULL;
   fam=NULL;
   Next=NULL;
+  }
+//---------------------------------------------------------------------------
+BEDData::~BEDData() {
+  delete Next;
   }
 //---------------------------------------------------------------------------
 BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim) {
@@ -249,16 +253,17 @@ int **BEDData::getGenotypes(int y,int x) {
   return genotypedest;
   }
 //---------------------------------------------------------------------------
-BEDData::~BEDData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 IVariableData::IVariableData() {
   individualid="";
   interaction=ENV_NOVALUE;
   covariate=NULL;
   ncovariate=0;
   Next=NULL;
+  }
+//---------------------------------------------------------------------------
+IVariableData::~IVariableData() {
+  delete covariate;
+  delete Next;
   }
 //---------------------------------------------------------------------------
 IVariableData *IVariableData::getSingleRowData(string fstr,...) {
@@ -312,20 +317,6 @@ bool IVariableData::areAllIndividualPresent(FAMData *famdata) {
   return ivd1==NULL && fd1==NULL;
   }
 //---------------------------------------------------------------------------
-int **IVariableData::getCovariates(int y,int x) {
-  IVariableData *ivd1;
-  int **covdest;
-  int y1,x1;
-
-  if (y==0 || x==0)
-    return NULL;
-  covdest=global::make2DArray<int>(y,x);
-  for (y1=0,ivd1=this; ivd1!=NULL; ivd1=ivd1->Next,y1++)
-    for (x1=0; x1<x; x1++)
-      covdest[y1][x1]=ivd1->covariate[x1];
-  return covdest;
-  }
-//---------------------------------------------------------------------------
 bool IVariableData::areInteractionsPresent() {
   IVariableData *ivd1;
 
@@ -333,10 +324,5 @@ bool IVariableData::areInteractionsPresent() {
     if (ivd1->interaction!=ENV_NOVALUE)
       return true;
   return false;
-  }
-//---------------------------------------------------------------------------
-IVariableData::~IVariableData() {
-  delete covariate;
-  delete Next;
   }
 //---------------------------------------------------------------------------
