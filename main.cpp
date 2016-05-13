@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
         THROW_ERROR(ERROR_TEXT::NO_PLINK_FILES);
       if (myanalysis.param.model==GenEnvGen2I::NO_MODEL)
         THROW_ERROR(ERROR_TEXT::NO_MODEL_TYPE);
-      if (!plink->bim->areInteractionMarkersPresent(imarker))
+      if (!plink->bim->setInteractionMarkerIndex(imarker))
         THROW_ERROR(ERROR_TEXT::MISSING_INTERACTION_MARKERS);
       if (!ivariable->areAllIndividualPresent(plink->fam))
         THROW_ERROR(ERROR_TEXT::UNKNOWN_INDIVIDUAL);
@@ -179,11 +179,11 @@ int main(int argc, char **argv) {
       myanalysis.nmarkerid=plink->bim->getLength<BIMData>();
       if (imarker==NULL) {
         myanalysis.nimarkerid=myanalysis.nmarkerid;
-        myanalysis.imarkerid=plink->bim->get(&BIMData::markerid,myanalysis.nmarkerid);
+        myanalysis.imarkerid=plink->bim->get(&BIMData::index,myanalysis.nmarkerid);
         }
       else {
         myanalysis.nimarkerid=imarker->getLength<IMarkerData>();
-        myanalysis.imarkerid=imarker->get(&IMarkerData::markerid,myanalysis.nimarkerid);
+        myanalysis.imarkerid=imarker->get(&IMarkerData::index,myanalysis.nimarkerid);
         }
       myanalysis.cutoff_app=limit->get(&LimitData::cutoff_app,myanalysis.nlimit);
       myanalysis.cutoff_mult=limit->get(&LimitData::cutoff_mult,myanalysis.nlimit);
@@ -210,8 +210,8 @@ int main(int argc, char **argv) {
     myanalysis.initialize();
     GenEnvGen2I::Analysis::printResults(cout,NULL);
     for (int imarkeridx=0; imarkeridx<myanalysis.nimarkerid; imarkeridx++) {
-      WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.imarkerid[imarkeridx]);
-      myanalysis.run(imarkeridx);
+      WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.getInteractionMarkerName(imarkeridx));
+      myanalysis.run(myanalysis.imarkerid[imarkeridx]);
       }
     CleanUp(EXIT_SUCCESS);
     }

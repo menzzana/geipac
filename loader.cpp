@@ -47,6 +47,7 @@ int Loader::getColumnSize(string fstr) {
   }
 //---------------------------------------------------------------------------
 IMarkerData::IMarkerData() {
+  index=-1;
   markerid="";
   Next=NULL;
   }
@@ -155,16 +156,18 @@ BIMData *BIMData::getSingleRowData(string fstr,...) {
   return data1;
   }
 //---------------------------------------------------------------------------
-bool BIMData::areInteractionMarkersPresent(IMarkerData *imarker) {
+bool BIMData::setInteractionMarkerIndex(IMarkerData *imarker) {
   IMarkerData *imark1;
   BIMData *bim1;
+  int idx;
 
   if (imarker==NULL)
     return true;
   for (imark1=imarker; imark1!=NULL; imark1=imark1->Next) {
-    for (bim1=this; bim1!=NULL; bim1=bim1->Next)
+    for (bim1=this,idx=0; bim1!=NULL; bim1=bim1->Next,idx++)
       if (boost::iequals(bim1->markerid,imark1->markerid))
         break;
+    imark1->index=idx;
     if (bim1==NULL) {
       WRITE_VALUE(ERROR_TEXT::MISSING_MARKER,imark1->markerid);
       return false;

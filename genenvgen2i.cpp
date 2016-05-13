@@ -63,7 +63,7 @@ Analysis::~Analysis() {
   delete[] covdata2;
   delete[] cleancovdata;
   delete rephenotype;
-  delete cleanresponse;
+  delete cleanrephenotype;
   }
 //------------------------------------------------------------------------------
 void Analysis::initialize() {
@@ -75,7 +75,7 @@ void Analysis::initialize() {
   covdata2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
   cleancovdata=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
   rephenotype=new double[nindividualid];
-  cleanresponse=new double[nindividualid];
+  cleanrephenotype=new double[nindividualid];
   for (int y1=0; y1<nindividualid; y1++) {
     rephenotype[y1]=phenotype[y1]-1;
     for (int x1=0; x1<ncovariate; x1++) {
@@ -83,8 +83,8 @@ void Analysis::initialize() {
       covdata2[y1][MATRIX_INDEX_COV2+x1]=covariate[y1][x1];
       }
     }
-  logreg1.createArrays(cleanresponse,cleancovdata,MATRIX_INDEX_COV2+ncovariate);
-  logreg2.createArrays(cleanresponse,cleancovdata,MATRIX_INDEX_COV1+ncovariate);
+  logreg1.createArrays(cleanrephenotype,cleancovdata,MATRIX_INDEX_COV2+ncovariate);
+  logreg2.createArrays(cleanrephenotype,cleancovdata,MATRIX_INDEX_COV1+ncovariate);
   }
 //------------------------------------------------------------------------------
 void Analysis::run(int imarkeridx) {
@@ -108,7 +108,7 @@ void Analysis::run(int imarkeridx) {
       results[RESULT_COLUMNS::STABLELRM]="NA";
       results[RESULT_COLUMNS::STABLELRA]="NA";
       results[RESULT_COLUMNS::PERM]=global::to_string(param.permutations);
-      results[RESULT_COLUMNS::INTERACTION]=imarkerid[imarkeridx];
+      results[RESULT_COLUMNS::INTERACTION]=getInteractionMarkerName(imarkeridx);
       results[RESULT_COLUMNS::CHR]=chromosome[markeridx];
       results[RESULT_COLUMNS::SNP]=markerid[markeridx];
       riskallele=calculateRiskAllele(markeridx,results);
@@ -116,6 +116,7 @@ void Analysis::run(int imarkeridx) {
       calculateRiskFactors(markeridx,riskallele,recode);
       riskabovecutoff=calculateRiskMatrix(NULL);
       logreg1.dimy=cleanData(markeridx,rephenotype,covdata2,MATRIX_INDEX_COV2+ncovariate);
+
 
       logreg1.clearArrays();
       belowthreshold=logreg1.gradientDescent(param.iterations,param.threshold);
@@ -175,9 +176,7 @@ void Analysis::alleleSummaryCount(int *alleles,int markeridx) {
   int offset;
 
   for (int i1=0; i1<nindividualid; i1++) {
-    if (!validGeneticData(i1,markeridx))
-      continue;
-    offset=(phenotype[i1]==PHENOTYPE_UNAFFECTED?INDEX_CONTROL_PRIMARY:INDEX_CASE_PRIMARY);
+    offset=(phenotype[i1]==PHENOTYPE_AFFECTED?INDEX_CASE_PRIMARY:INDEX_CONTROL_PRIMARY);
     switch (genotype[i1][markeridx]) {
       case HOMOZYGOTE_PRIMARY:
         alleles[offset]+=2;
@@ -191,6 +190,10 @@ void Analysis::alleleSummaryCount(int *alleles,int markeridx) {
         break;
       }
     }
+  }
+//------------------------------------------------------------------------------
+string Analysis::getInteractionMarkerName(int imarkeridx) {
+  return markerid[imarkerid[imarkeridx]];
   }
 //------------------------------------------------------------------------------
 void Analysis::setInteraction(int imarkeridx) {
@@ -220,7 +223,7 @@ void Analysis::setInteraction(int imarkeridx) {
         imarkinteraction[i1]=(riskhomozygote==HOMOZYGOTE_SECONDARY?INTERACTION:NO_INTERACTION);
         break;
       case HETEROZYGOTE:
-        imarkinteraction[i1]=(param.model==DOMINANT?INTERACTION:NO_INTERACTION);
+        imarkinteraction[i1]=(isDominantOrXMale(i1,imarkeridx)?INTERACTION:NO_INTERACTION);
         break;
       }
     }
@@ -281,10 +284,10 @@ char Analysis::calculateRiskAllele(int markeridx, string *results) {
     return caseminallele;
   }
 //------------------------------------------------------------------------------
-bool Analysis::isDominantOrXMale(int individualidx ) {
+bool Analysis::isDominantOrXMale(int individualidx,int markeridx) {
   if (param.model==DOMINANT)
     return true;
-  return (boost::iequals(chromosome[individualidx],CHROMOSOME_X) && gender[individualidx]==GENDER_MALE);
+  return (boost::iequals(chromosome[markeridx],CHROMOSOME_X) && gender[individualidx]==GENDER_MALE);
   }
 //------------------------------------------------------------------------------
 void Analysis::calculateRiskFactors(int markeridx,char riskallele,int recode) {
@@ -301,7 +304,7 @@ void Analysis::calculateRiskFactors(int markeridx,char riskallele,int recode) {
     if (genotype[i1][markeridx]==riskgenotype)
       riskfactors[i1]=RISK;
     if (genotype[i1][markeridx]==HETEROZYGOTE)
-      riskfactors[i1]=isDominantOrXMale(i1)?RISK:NO_RISK;
+      riskfactors[i1]=isDominantOrXMale(i1,markeridx)?RISK:NO_RISK;
     if (recode%2==1)
       riskfactors[i1]=(riskfactors[i1]==NO_RISK?RISK:NO_RISK);
     }
@@ -366,7 +369,7 @@ int Analysis::cleanData(int markeridx,double *y, double **x, int dimx) {
   for (int y1=y2=0; y1<nindividualid; y1++) {
     if (!validIndividualData(y1,markeridx))
       continue;
-    cleanresponse[y2]=y[y1];
+    cleanrephenotype[y2]=y[y1];
     for (x1=0; x1<dimx; x1++) {
       if (x[y1][x1]==NA_INTERACTION)
         break;

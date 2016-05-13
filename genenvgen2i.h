@@ -53,27 +53,28 @@ namespace GenEnvGen2I {
         bool appnegative;
         } param;
 
-      string *markerid,*imarkerid,*individualid,*chromosome;
+      string *markerid,*individualid,*chromosome;
       int *interaction,*interactionfromfile,*imarkinteraction,**covariate;
       double *cutoff_mult,*cutoff_app;
       int *gender,*phenotype,*permphenotype,**genotype;
       char *allele1,*allele2;
-      int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate,*riskfactors;
+      int *imarkerid,nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate,*riskfactors;
       double **covdata1,**covdata2,**cleancovdata;
-      double *rephenotype,*cleanresponse;
+      double *rephenotype,*cleanrephenotype;
       LogisticRegression logreg1,logreg2;
 
       Analysis();
       ~Analysis();
       void setInteraction(int imarkeridx);
+      string getInteractionMarkerName(int imarkeridx);
       void initialize();
-      void run(int imarkeridx);
+      void run(int interactionmarkeridx);
       void alleleSummaryCount(int *alleles,int markeridx);
       bool validIndividualData(int individualidx,int markeridx);
       bool validGeneticData(int individualidx,int markeridx);
       char calculateRiskAllele(int markeridx, string *results);
       void calculateRiskFactors(int markeridx,char riskallele,int recode);
-      bool isDominantOrXMale(int individualidx);
+      bool isDominantOrXMale(int individualidx,int markeridx);
       bool calculateRiskMatrix(string *results);
       int cleanData(int markeridx,double *y, double **x, int dimx);
       void shufflePhenotype();

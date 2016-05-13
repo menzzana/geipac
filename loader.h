@@ -63,16 +63,16 @@ class Loader {
       return dest;
       }
 //------------------------------------------------------------------------------
-    template<typename T, typename K> T **get(T *K::*pmember,int length,int column) {
+    template<typename T, typename K> T **get(T *K::*pmember,int rows,int columns) {
       K *tl1;
       T **dest;
       int y1,x1;
 
-      if (length==0)
+      if (rows==0)
         return NULL;
-      dest=global::make2DArray<T>(length,column);
+      dest=global::make2DArray<T>(rows,columns);
       for (tl1=(K *)this,y1=0; tl1!=NULL; tl1=tl1->Next,y1++)
-        for (x1=0; x1<column; x1++)
+        for (x1=0; x1<columns; x1++)
           dest[y1][x1]=(tl1->*pmember)[x1];
       return dest;
       }
@@ -111,6 +111,7 @@ class Loader {
 class IMarkerData : public Loader {
   public:
     string markerid;
+    int index;
     IMarkerData *Next;
 
     IMarkerData();
@@ -162,7 +163,7 @@ class BIMData : public Loader {
     BIMData();
     ~BIMData();
     BIMData *getSingleRowData(string fstr,...);
-    bool areInteractionMarkersPresent(IMarkerData *imarker);
+    bool setInteractionMarkerIndex(IMarkerData *imarker);
   };
 //------------------------------------------------------------------------------
 class BEDData : public Loader {
