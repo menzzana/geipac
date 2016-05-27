@@ -34,6 +34,7 @@ namespace GenEnvGen2I {
   static const char CORRECTED_TEXT[]="Corrected";
   static const double THRESHOLD=1E-3;
   static const int ITERATIONS=500;
+  static const int N_RISK_MATRIX=8;
   static const int CUTOFF=5;
   static const char REC[]="rec";
   static const char DOM[]="dom";
@@ -59,8 +60,7 @@ namespace GenEnvGen2I {
       int *gender,*phenotype,*permphenotype,**genotype;
       char *allele1,*allele2;
       int *imarkerid,nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate,*riskfactors;
-      double **covdata1,**covdata2,**cleancovdata;
-      double *rephenotype,*cleanrephenotype;
+      double **covdata1,**covdata2,**cleancovdata,*cleanphenotype;
       LogisticRegression logreg1,logreg2;
 
       Analysis();
@@ -74,8 +74,9 @@ namespace GenEnvGen2I {
       char calculateRiskAllele(int markeridx, string *results);
       void calculateRiskFactors(int markeridx,char riskallele,int recode);
       bool isDominantOrXMale(int individualidx,int markeridx);
-      bool calculateRiskMatrix(string *results);
-      int cleanData(int markeridx,double *y, double **x, int dimx);
+      void calculateRiskMatrix(int *riskmatrix);
+      bool belowCutOff(int *riskmatrix);
+      int cleanData(int markeridx,int *y, double **x, int dimx);
       void shufflePhenotype();
       void swapInteractions();
       static void printResults(ostream &stream,string *results);

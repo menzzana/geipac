@@ -42,7 +42,7 @@ class Loader {
       return tl2;
       }
 //------------------------------------------------------------------------------
-    template<typename T> int getLength() {
+    template<typename T> int Length() {
       T *tl1;
       int i1;
 

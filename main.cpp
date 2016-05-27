@@ -171,18 +171,17 @@ int main(int argc, char **argv) {
       WRITE_VALUE(HEADER_TEXT::THRESHOLD,myanalysis.param.threshold);
       WRITE_VALUE(HEADER_TEXT::APPNEG,(myanalysis.param.appnegative?"Yes":"No"));
       WRITE_VALUE(HEADER_TEXT::APCALC,(myanalysis.param.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
-                                                                      myanalysis.param.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:
-                                                                      GenEnvGen2I::CORRECTED_TEXT));
+        myanalysis.param.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
       // Transfer data to analysis class
-      myanalysis.nindividualid=plink->fam->getLength<FAMData>();
-      myanalysis.nlimit=limit->getLength<LimitData>();
-      myanalysis.nmarkerid=plink->bim->getLength<BIMData>();
+      myanalysis.nindividualid=plink->fam->Length<FAMData>();
+      myanalysis.nlimit=limit->Length<LimitData>();
+      myanalysis.nmarkerid=plink->bim->Length<BIMData>();
       if (imarker==NULL) {
         myanalysis.nimarkerid=myanalysis.nmarkerid;
         myanalysis.imarkerid=plink->bim->get(&BIMData::index,myanalysis.nmarkerid);
         }
       else {
-        myanalysis.nimarkerid=imarker->getLength<IMarkerData>();
+        myanalysis.nimarkerid=imarker->Length<IMarkerData>();
         myanalysis.imarkerid=imarker->get(&IMarkerData::index,myanalysis.nimarkerid);
         }
       myanalysis.cutoff_app=limit->get(&LimitData::cutoff_app,myanalysis.nlimit);

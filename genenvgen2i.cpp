@@ -31,7 +31,6 @@ Analysis::Analysis() {
   riskfactors=NULL;
   covdata1=NULL;
   covdata2=NULL;
-  rephenotype=NULL;
   nimarkerid=0;
   nmarkerid=0;
   nindividualid=0;
@@ -62,8 +61,7 @@ Analysis::~Analysis() {
   delete[] covdata1;
   delete[] covdata2;
   delete[] cleancovdata;
-  delete rephenotype;
-  delete cleanrephenotype;
+  delete cleanphenotype;
   }
 //------------------------------------------------------------------------------
 void Analysis::initialize() {
@@ -74,22 +72,19 @@ void Analysis::initialize() {
   covdata1=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV1+ncovariate);
   covdata2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
   cleancovdata=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
-  rephenotype=new double[nindividualid];
-  cleanrephenotype=new double[nindividualid];
-  for (int y1=0; y1<nindividualid; y1++) {
-    rephenotype[y1]=phenotype[y1]-1;
+  cleanphenotype=new double[nindividualid];
+  for (int y1=0; y1<nindividualid; y1++)
     for (int x1=0; x1<ncovariate; x1++) {
       covdata1[y1][MATRIX_INDEX_COV1+x1]=covariate[y1][x1];
       covdata2[y1][MATRIX_INDEX_COV2+x1]=covariate[y1][x1];
       }
-    }
-  logreg1.createArrays(cleanrephenotype,cleancovdata,MATRIX_INDEX_COV2+ncovariate);
-  logreg2.createArrays(cleanrephenotype,cleancovdata,MATRIX_INDEX_COV1+ncovariate);
+  logreg1.createArrays(cleanphenotype,cleancovdata,MATRIX_INDEX_COV2+ncovariate);
+  logreg2.createArrays(cleanphenotype,cleancovdata,MATRIX_INDEX_COV1+ncovariate);
   }
 //------------------------------------------------------------------------------
 void Analysis::run(int interactivemarkeridx) {
-  bool belowthreshold,riskabovecutoff;
-  int recode;
+  bool belowthreshold;
+  int recode,riskmatrix[N_RISK_MATRIX];
   string results[RESULT_COLUMNS::LENGTH_RESULTS];
   char riskallele;
 
@@ -114,46 +109,12 @@ void Analysis::run(int interactivemarkeridx) {
       riskallele=calculateRiskAllele(markeridx,results);
       results[RESULT_COLUMNS::RISK]=riskallele;
       calculateRiskFactors(markeridx,riskallele,recode);
-      riskabovecutoff=calculateRiskMatrix(NULL);
-      logreg1.dimy=cleanData(markeridx,rephenotype,covdata2,MATRIX_INDEX_COV2+ncovariate);
-
-
-
-      cout <<markerid[interactivemarkeridx]<<"\t"<<markerid[markeridx]<<endl;
-      for (int y2=0; y2<nindividualid; y2++) {
-        for (int x2=0; x2<nmarkerid; x2++)
-          cout<<genotype[y2][x2]<<"|";
-        cout<<endl;
-        }
-      cout<<"--------------------------------------------------"<<endl;
-
-/*
-      cout<<riskallele<<endl;
-      for (int y2=0; y2<nindividualid; y2++) {
-        cout<<genotype[y2][imarkeridx]<<"_";
-        cout<<phenotype[y2]<<":";
-        cout<<interaction[y2]<<"_";
-        for (int x2=0; x2<MATRIX_INDEX_COV1+ncovariate; x2++)
-          cout<<covdata1[y2][x2]<<",";
-        cout<<endl;
-        }
-      cout <<"|||||||||||||||||||||||||||||||||||||||||||||||||"<<endl;
-
-
-/*
-      for (int i1=0; i1<nnewdata; i1++) {
-        cout<<newresponse[i1]<<":";
-        for (int i2=0; i2<MATRIX_INDEX_COV2+ncovariate; i2++)
-          cout<<newcovdata[i1][i2]<<".";
-        cout<<endl;
-        }
-*/
-
-
+      calculateRiskMatrix(riskmatrix);
+      logreg1.dimy=cleanData(markeridx,phenotype,covdata2,MATRIX_INDEX_COV2+ncovariate);
       logreg1.clearArrays();
       belowthreshold=logreg1.gradientDescent(param.iterations,param.threshold);
-      if (riskabovecutoff) {
-        logreg2.dimy=cleanData(markeridx,rephenotype,covdata1,MATRIX_INDEX_COV1+ncovariate);
+      if (!belowCutOff(riskmatrix)) {
+        logreg2.dimy=cleanData(markeridx,phenotype,covdata1,MATRIX_INDEX_COV1+ncovariate);
         logreg2.clearArrays();
         belowthreshold=logreg2.gradientDescent(param.iterations,param.threshold);
         logreg2.calculateZ();
@@ -168,7 +129,6 @@ void Analysis::run(int interactivemarkeridx) {
         results[RESULT_COLUMNS::ORMIO]=global::to_string(logreg2.theta[MATRIX_INDEX_A1mB1m]);
         results[RESULT_COLUMNS::ORMIOL]=global::to_string(logreg2.lowCI(MATRIX_INDEX_A1mB1m));
         results[RESULT_COLUMNS::ORMIOH]=global::to_string(logreg2.highCI(MATRIX_INDEX_A1mB1m));
-
 
         }
       if (logreg1.theta[MATRIX_INDEX_A1B0]<0 &&
@@ -189,10 +149,24 @@ void Analysis::run(int interactivemarkeridx) {
         }
       if (recode>0) {
         calculateRiskFactors(markeridx,riskallele,recode);
-        riskabovecutoff=calculateRiskMatrix(results);
+        calculateRiskMatrix(riskmatrix);
+        }
+      results[RESULT_COLUMNS::IND00_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND00_0-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND00_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND00_1-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND01_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND01_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND01_1-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND10_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND10_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND10_1-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND11_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::IND11_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0]);
+      results[RESULT_COLUMNS::RECODE]=global::to_string(recode);
+      results[RESULT_COLUMNS::THRESHOLD]=global::to_string(param.threshold);
+      if (!belowCutOff(riskmatrix)) {
+
         }
 
-      //printResults(cout,results);
+
+      printResults(cout,results);
 
 
       }
@@ -203,6 +177,9 @@ void Analysis::run(int interactivemarkeridx) {
     }
 
   }
+
+
+
 //------------------------------------------------------------------------------
 void Analysis::alleleSummaryCount(int *alleles,int markeridx) {
   int offset;
@@ -338,11 +315,10 @@ void Analysis::calculateRiskFactors(int markeridx,char riskallele,int recode) {
     }
   }
 //------------------------------------------------------------------------------
-bool Analysis::calculateRiskMatrix(string *results) {
-  static int NINDIVIDUALTYPES=8;
+void Analysis::calculateRiskMatrix(int *riskmatrix) {
   int affstatus;
 
-  int individualtypes[]={0,0,0,0,0,0,0,0};
+  fill_n(riskmatrix,N_RISK_MATRIX,0);
   for (int y1=0; y1<nindividualid; y1++) {
     fill_n(covdata1[y1],MATRIX_INDEX_COV1,NA_INTERACTION);
     fill_n(covdata2[y1],MATRIX_INDEX_COV2,NA_INTERACTION);
@@ -352,22 +328,22 @@ bool Analysis::calculateRiskMatrix(string *results) {
     fill_n(covdata2[y1],MATRIX_INDEX_COV2,NO_INTERACTION);
     covdata1[y1][LRTHETA0]=1;
     covdata2[y1][LRTHETA0_M]=1;
-    affstatus=rephenotype[y1];
+    affstatus=phenotype[y1]-1;
     if (riskfactors[y1]==NO_RISK && interaction[y1]==NO_INTERACTION) {
       covdata2[y1][MATRIX_INDEX_A0B0]=INTERACTION;
-      individualtypes[affstatus]++;
+      riskmatrix[affstatus]++;
       }
     if (riskfactors[y1]==RISK && interaction[y1]==NO_INTERACTION) {
       covdata2[y1][MATRIX_INDEX_A1B0]=INTERACTION;
-      individualtypes[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0+affstatus]++;
+      riskmatrix[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
     if (riskfactors[y1]==NO_RISK && interaction[y1]>=INTERACTION) {
       covdata2[y1][MATRIX_INDEX_A0B1]=INTERACTION;
-      individualtypes[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0+affstatus]++;
+      riskmatrix[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
     if (riskfactors[y1]==RISK && interaction[y1]>=INTERACTION) {
       covdata2[y1][MATRIX_INDEX_A1B1]=INTERACTION;
-      individualtypes[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0+affstatus]++;
+      riskmatrix[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
     if (riskfactors[y1]==RISK)
       covdata1[y1][MATRIX_INDEX_A1m]=INTERACTION;
@@ -375,29 +351,22 @@ bool Analysis::calculateRiskMatrix(string *results) {
       covdata1[y1][MATRIX_INDEX_B1m]=INTERACTION;
     covdata1[y1][MATRIX_INDEX_A1mB1m]=covdata1[y1][MATRIX_INDEX_A1m]*covdata1[y1][MATRIX_INDEX_B1m];
     }
-  if (results!=NULL) {
-    results[RESULT_COLUMNS::IND00_0]=individualtypes[RESULT_COLUMNS::IND00_0-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND00_1]=individualtypes[RESULT_COLUMNS::IND00_1-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND01_0]=individualtypes[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND01_1]=individualtypes[RESULT_COLUMNS::IND01_1-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND10_0]=individualtypes[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND10_1]=individualtypes[RESULT_COLUMNS::IND10_1-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND11_0]=individualtypes[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0];
-    results[RESULT_COLUMNS::IND11_1]=individualtypes[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0];
-    }
-  for (int i1=0; i1<NINDIVIDUALTYPES; i1++)
-    if (individualtypes[i1]<=param.cutoff)
+  }
+//------------------------------------------------------------------------------
+bool Analysis::belowCutOff(int *riskmatrix) {
+  for (int i1=0; i1<N_RISK_MATRIX; i1++)
+    if (riskmatrix[i1]<=param.cutoff)
       return false;
   return true;
   }
 //------------------------------------------------------------------------------
-int Analysis::cleanData(int markeridx,double *y, double **x, int dimx) {
+int Analysis::cleanData(int markeridx,int *y, double **x, int dimx) {
   int y2,x1;
 
   for (int y1=y2=0; y1<nindividualid; y1++) {
     if (!validIndividualData(y1,markeridx))
       continue;
-    cleanrephenotype[y2]=y[y1];
+    cleanphenotype[y2]=y[y1]-1;
     for (x1=0; x1<dimx; x1++) {
       if (x[y1][x1]==NA_INTERACTION)
         break;
