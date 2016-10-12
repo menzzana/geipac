@@ -54,8 +54,8 @@ namespace STATUS_TEXT {
   const char WRITE_PERMUTATION[]="Writing permutation results";
   const char OUTPUT_READY[]="Ready.";
   const char COMPLETED_ITERATION[]="Completed iteration %d of %d";
-  const char POSITIVE_CONVERGENCE[]="Yes";
-  const char NEGATIVE_CONVERGENCE[]="No";
+  const char CONVERGENCE[]="Yes";
+  const char NO_CONVERGENCE[]="No";
   const char FINISH[]="Finished";
   }
 //------------------------------------------------------------------------------

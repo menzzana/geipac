@@ -41,6 +41,7 @@ void CleanUp(bool exitvalue) {
   }
 //------------------------------------------------------------------------------
 int main(int argc, char **argv) {
+
   prgm_opt::variables_map option_map;
   prgm_opt::options_description options("Options");
   IMarkerData *imarker;
@@ -220,38 +221,3 @@ int main(int argc, char **argv) {
     }
   }
 //------------------------------------------------------------------------------
-
-/*
-ifstream fp;
-int i1,f1,f2;
-double **x,*y;
-string fstr;
-
-y=new double[100];
-x=new double *[100];
-x[0]=new double[200];
-for (int i1=1; i1<100; i1++)
-  x[i1]=&x[0][i1*2];
-fp.open("LGOctave/ex2data1.txt");
-i1=0;
-while (getline(fp,fstr)) {
-  f1=fstr.find_first_of(",");
-  f2=fstr.find_last_of(",");
-  y[i1]=strtod(fstr.substr(f2+1,f2).c_str(),NULL);
-  x[i1][0]=strtod(fstr.substr(0,f1).c_str(),NULL);
-  x[i1][1]=strtod(fstr.substr(f1+1,f2-f1-1).c_str(),NULL);
-  i1++;
-  }
-fp.close();
-LogReg lr=LogReg();
-lr.createArrays(y,x,100,2);
-lr.clearArrays();
-lr.Normalize();
-cout << lr.Cost() << endl;
-cout << "------------------------------------------------"<<endl;
-lr.GradientDescent(400,1E-5);
-cout << "------------------------------------------------"<<endl;
-cout << lr.Cost() << endl;
-cout << lr.theta[0] << "\t" << lr.theta[1]<< "\t" << lr.theta[2] << "\t" << endl;
-exit(EXIT_SUCCESS);
-*/

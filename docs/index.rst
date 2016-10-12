@@ -24,6 +24,8 @@ C++                  Works well with the GNU compiler
 cmake                version 2.8+
 Boost                Version 1.36+ http://www.boost.org/
 MPI                  If not found a serial version of parma will be compiled
+Eigen                version 3.2.10 Library for matrix operation which
+                     can be found at http://eigen.tuxfamily.org
 ==================== ===============================================================
 
 Geipac has only been tested with the above mentioned versions, but may function with other versions as well.
@@ -31,7 +33,7 @@ Geipac has only been tested with the above mentioned versions, but may function 
 In order to build just run::
 
   cd [binary dir]
-  cmake [binary dir]/CMakeLists.txt
+  cmake [binary dir]/CMakeLists.txt -DEIGEN3_INCLUDE_DIR="<Eigen3 include directory>"
   make
 
 USAGE

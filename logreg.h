@@ -2,33 +2,30 @@
 #define LOGREG_H
 
 #include <stdio.h>
+#include "global.h"
 #include <iostream>
 #include <string.h>
 #include <math.h>
+#include <Eigen/Dense>
+#include <Eigen/LU>
 //------------------------------------------------------------------------------
 using namespace std;
+using namespace Eigen;
+//------------------------------------------------------------------------------
+// Logistic regression class
 //------------------------------------------------------------------------------
 class LogisticRegression {
   public:
-    static constexpr double ALPHA=1;
     static constexpr double CONF_LEVEL_95=1.96;
-    double **x,*y,*theta,*tmptheta,*z,*sumofsquares;
-    int dimx,dimy;
+    MatrixXd x;
+    VectorXd y,beta,stderr,z;
+    int firstx;
 
-    LogisticRegression();
-    void createArrays(double *y,double **x,int dimx);
     void clearArrays();
-    double matrixMultiply(double *x1,double *x2);
-    double sigmoid(double z);
-    double logit(double z);
+    bool maximumLikelihoodRegression(int iterations, double minerror);
     double getMULTPropability(int idx);
-    double calculateCost();
-    void calculateTheta();
-    void calculateZ();
-    double stdErr(int idx);
     double lowCI(int idx);
     double highCI(int idx);
-    bool gradientDescent(int iterations, double minerror);
     ~LogisticRegression();
   };
 //---------------------------------------------------------------------------

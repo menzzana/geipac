@@ -47,6 +47,28 @@ using namespace std;
 //------------------------------------------------------------------------------
 // global constants and functions used
 //------------------------------------------------------------------------------
+namespace CALC {
+  #define IA 16807
+  #define IM 2147483647
+  #define AM (1.0/IM)
+  #define IQ 127773
+  #define IR 2836
+  #define NTAB 32
+  #define NDIV (1+(IM-1)/NTAB)
+  #define EPS 1.2e-7
+  #define RNMX (1.0-EPS)
+  static long rseed=-123456789;
+
+  void sran1(long rseed);
+  double ran1();
+  double Chi2(double x, int n);
+//------------------------------------------------------------------------------
+  template<typename T> void randomShuffle(T *array,int maxn) {
+    for (int i1=0; i1<maxn; i1++)
+      swap(array[i1],array[(int)CALC::ran1()*maxn]);
+    }
+  }
+//------------------------------------------------------------------------------
 namespace global {
   static const int MPIROOT=0;
 
@@ -66,25 +88,8 @@ namespace global {
       dest[y1]=&dest[0][y1*x];
     return dest;
     }
-  //------------------------------------------------------------------------------
-  string getFileName(string pathstring);
-  }
 //------------------------------------------------------------------------------
-namespace CALC {
-  #define IA 16807
-  #define IM 2147483647
-  #define AM (1.0/IM)
-  #define IQ 127773
-  #define IR 2836
-  #define NTAB 32
-  #define NDIV (1+(IM-1)/NTAB)
-  #define EPS 1.2e-7
-  #define RNMX (1.0-EPS)
-  static long rseed=-123456789;
-
-  void sran1(long rseed);
-  double ran1();
-  double Chi2(double x, int n);
+  string getFileName(string pathstring);
   }
 //------------------------------------------------------------------------------
 #endif // GLOBAL_H

@@ -20,7 +20,7 @@ namespace GenEnvGen2I {
   enum PHENOTYPE_TYPE {PHENOTYPE_UNKNOWN, PHENOTYPE_UNAFFECTED,PHENOTYPE_AFFECTED};
   enum GENDER_TYPE {GENDER_UNKNOWN,GENDER_MALE,GENDER_FEMALE};
   enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_POSITION_OFFSET=1,INDEX_NA=0};
-  enum MATRIX_TYPE {LRTHETA0,MATRIX_INDEX_A0B0,MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_COV2};
+  enum MATRIX_TYPE {MATRIX_INDEX_A0B0,LRTHETA0,MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_COV2};
   enum MATRIX_MULT_TYPE {LRTHETA0_M,MATRIX_INDEX_A1m,MATRIX_INDEX_B1m,MATRIX_INDEX_A1mB1m,MATRIX_INDEX_COV1};
   enum ZYGOSITY_TYPE {HOMOZYGOTE_PRIMARY, ZYGOTE_UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY};
   enum RISKFACTOR_TYPE {NO_RISK,RISK,NA_RISK=-1};
@@ -32,10 +32,10 @@ namespace GenEnvGen2I {
   static const char DISEASE_TEXT[]="Disease";
   static const char EFFECT_TEXT[]="Effect";
   static const char CORRECTED_TEXT[]="Corrected";
-  static const double THRESHOLD=1E-3;
+  static const double THRESHOLD=1E-4;
   static const int ITERATIONS=500;
   static const int N_RISK_MATRIX=8;
-  static const int CUTOFF=5;
+  static const int CUTOFF=10;
   static const char REC[]="rec";
   static const char DOM[]="dom";
   static const char REC_TEXT[]="Recessive";
@@ -60,7 +60,7 @@ namespace GenEnvGen2I {
       int *gender,*phenotype,*permphenotype,**genotype;
       char *allele1,*allele2;
       int *imarkerid,nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate,*riskfactors;
-      double **covdata1,**covdata2,**cleancovdata,*cleanphenotype;
+      double **covdata1,**covdata2;
       LogisticRegression logreg1,logreg2;
 
       Analysis();
@@ -76,7 +76,7 @@ namespace GenEnvGen2I {
       bool isDominantOrXMale(int individualidx,int markeridx);
       void calculateRiskMatrix(int *riskmatrix);
       bool belowCutOff(int *riskmatrix);
-      int cleanData(int markeridx,int *y, double **x, int dimx);
+      void setCleanData(int markeridx,int *y, double **x, VectorXd &desty, MatrixXd &destx, int dimx);
       void shufflePhenotype();
       void swapInteractions();
       static void printResults(ostream &stream,string *results);
@@ -84,7 +84,7 @@ namespace GenEnvGen2I {
   }
 //------------------------------------------------------------------------------
 namespace RESULT_COLUMNS {
-  const char *const RESULT_COLUMN_TEXT[]={"perm","Interaction_marker","Chr_test_marker","Test_marker",
+  const char *const RESULT_COLUMN_TEXT[]={"Permutations","Interaction_marker","Chr_test_marker","Test_marker",
     "ORa_double_exposure", "ORa_double_exposure_lower_limit","ORa_double_exposure_higher_limit", "ORa_test_marker",
     "ORa_test_marker_lower_limit", "ORa_test_marker_higher_limit", "ORa_risk_factor", "ORa_risk_factor_lower_limit",
     "ORa_risk_factor_higher_limit", "AP", "AP_L", "AP_H", "AP_pvalue", "Stable_additive_logistic_regression",
@@ -93,10 +93,11 @@ namespace RESULT_COLUMNS {
     "APM", "APM_L", "APM_H", "APM_pvalue", "Stable_multiplicative_logistic_regression", "No_controls_test_0_risk_0",
     "No_cases_test_0_risk_0", "No_controls_test_0_risk_1", "No_cases_test_0_risk_1", "No_controls_test_1_risk_0",
     "No_cases_test_1_risk_0",  "No_controls_test_1_risk_1", "No_cases_test_1_risk_1", "Test_marker_minor_allele",
-    "Test_marker_major_allele", "Test_marker_risk_allele", "recode_code", "Temporary_threshold"
+    "Test_marker_major_allele", "Test_marker_risk_allele", "Recode_code", "Temporary_threshold"
     };
 
-  enum RESULT_COLUMN_IDX {PERM, INTERACTION, CHR, SNP, ORII, ORIIL, ORIIH, ORIO, ORIOL, ORIOH, OROI,
+  enum RESULT_COLUMN_IDX {
+    PERM, INTERACTION, CHR, SNP, ORII, ORIIL, ORIIH, ORIO, ORIOL, ORIOH, OROI,
     OROIL, OROIH, AP, APL, APH,	APP, STABLELRA, MULT, ORMII, ORMIIL, ORMIIH, ORMIO, ORMIOL, ORMIOH,
     ORMOI, ORMOIL, ORMOIH, APM, APML, APMH, APMP, STABLELRM, IND00_0, IND00_1, IND01_0, IND01_1,
     IND10_0, IND10_1,	IND11_0, IND11_1,	MINOR, MAJOR, RISK, RECODE, THRESHOLD

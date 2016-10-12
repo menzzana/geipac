@@ -28,6 +28,13 @@ else(Boost_FOUND)
 endif(Boost_FOUND)
 link_directories(${Boost_INCLUDE_DIRS})
 
+set(EIGEN3_INCLUDE_DIR $ENV{EIGEN_INCLUDE_DIR})
+if(EIGEN3_INCLUDE_DIR)
+  message(STATUS "Eigen3 found")
+else(EIGEN3_INCLUDE_DIR)
+  message(FATAL_ERROR "Eigen3 installation has not been found")
+endif(EIGEN3_INCLUDE_DIR)
+
 find_package(MPI)
 if(MPI_FOUND)
   message(STATUS "Package MPI found.")
@@ -40,5 +47,5 @@ endif(MPI_FOUND)
 # Link and include
 ###############################################################################
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${MPI_CXX_INCLUDE_PATH} ${Boost_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${MPI_CXX_INCLUDE_PATH} ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
