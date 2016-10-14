@@ -188,15 +188,13 @@ void Analysis::run(int interactivemarkeridx) {
                     max(logreg1.oddsratio(LR_INDEX_A1B1),logreg1.oddsratio(LR_INDEX_A1B0)+logreg1.oddsratio(LR_INDEX_A0B1)-1);
             break;
           }
-        double apmvalue;
-        apmvalue=logreg1.calculateAPMValue(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
-        results[RESULT_COLUMNS::APM]=global::to_string(apmvalue);
-        double apmerror;
-        apmerror=logreg1.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
-        results[RESULT_COLUMNS::APML]=global::to_string(logreg1.lowCI(apmvalue,apmerror));
-        results[RESULT_COLUMNS::APMH]=global::to_string(logreg1.highCI(apmvalue,apmerror));
-        boost::math::normal normaldist=boost::math::normal(0,apmerror);
-        results[RESULT_COLUMNS::APMP]=global::to_string(1-cdf(normaldist,abs(apmvalue))*2);
+        double aperror;
+        aperror=logreg1.APSEM(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1);
+        results[RESULT_COLUMNS::AP]=global::to_string(apvalue);
+        results[RESULT_COLUMNS::APL]=global::to_string(logreg1.lowCI(apvalue,aperror));
+        results[RESULT_COLUMNS::APH]=global::to_string(logreg1.highCI(apvalue,aperror));
+        boost::math::normal normaldist=boost::math::normal(0,aperror);
+        results[RESULT_COLUMNS::APP]=global::to_string(1-cdf(normaldist,abs(apvalue))*2);
         }
 
 
