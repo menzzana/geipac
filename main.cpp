@@ -41,7 +41,6 @@ void CleanUp(bool exitvalue) {
   }
 //------------------------------------------------------------------------------
 int main(int argc, char **argv) {
-
   prgm_opt::variables_map option_map;
   prgm_opt::options_description options("Options");
   IMarkerData *imarker;

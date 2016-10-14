@@ -28,7 +28,7 @@ else(Boost_FOUND)
 endif(Boost_FOUND)
 link_directories(${Boost_INCLUDE_DIRS})
 
-set(EIGEN3_INCLUDE_DIR $ENV{EIGEN_INCLUDE_DIR})
+set(EIGEN3_INCLUDE_DIR ${EIGEN_INCLUDE_DIR})
 if(EIGEN3_INCLUDE_DIR)
   message(STATUS "Eigen3 found")
 else(EIGEN3_INCLUDE_DIR)

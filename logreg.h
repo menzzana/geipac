@@ -16,17 +16,22 @@ using namespace Eigen;
 //------------------------------------------------------------------------------
 class LogisticRegression {
   public:
-    static constexpr double CONF_LEVEL_95=1.96;
-    MatrixXd x;
-    VectorXd y,beta,stderr,z;
-    int firstx;
+    MatrixXd x,variancecovariance;
+    VectorXd y,beta,stderr,z,oddsratio;
 
     void clearArrays();
     bool maximumLikelihoodRegression(int iterations, double minerror);
-    double getMULTPropability(int idx);
     double lowCI(int idx);
     double highCI(int idx);
+    double lowCI(double value, double error);
+    double highCI(double value, double error);
+    double calculateAPMValue(int idx1,int idx2,int idx3);
+    double calculateRERI(int idx1,int idx2,int idx3);
+    double APSEM(int idx1,int idx2,int idx3);
     ~LogisticRegression();
+
+  private:
+    static constexpr double CONF_LEVEL_95=1.96;
   };
 //---------------------------------------------------------------------------
 #endif // LOGREG_H

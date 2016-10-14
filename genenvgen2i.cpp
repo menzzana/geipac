@@ -83,6 +83,7 @@ void Analysis::run(int interactivemarkeridx) {
   char riskallele;
 
   CALC::sran1(param.randomseed);
+  boost::math::chi_squared chi2(1);
   setInteraction(interactivemarkeridx);
   for (int permidx=0; permidx<=param.permutations; permidx++) {
     if (permidx==0)
@@ -104,37 +105,46 @@ void Analysis::run(int interactivemarkeridx) {
       results[RESULT_COLUMNS::RISK]=riskallele;
       calculateRiskFactors(markeridx,riskallele,recode);
       calculateRiskMatrix(riskmatrix);
-      setCleanData(markeridx,phenotype,covdata2,logreg1.y,logreg1.x,MATRIX_INDEX_COV2+ncovariate);
-      logreg1.firstx=1;
+      setCleanData(markeridx,phenotype,covdata2,logreg1.y,logreg1.x,MATRIX_INDEX_COV2+ncovariate,false);
       belowthreshold=logreg1.maximumLikelihoodRegression(param.iterations,param.threshold);
       if (!belowCutOff(riskmatrix)) {
-        setCleanData(markeridx,phenotype,covdata1,logreg2.y,logreg2.x,MATRIX_INDEX_COV1+ncovariate);
+        setCleanData(markeridx,phenotype,covdata1,logreg2.y,logreg2.x,MATRIX_INDEX_COV1+ncovariate,true);
         belowthreshold=logreg2.maximumLikelihoodRegression(param.iterations,param.threshold);
         results[RESULT_COLUMNS::STABLELRM]=belowthreshold?STATUS_TEXT::CONVERGENCE:STATUS_TEXT::NO_CONVERGENCE;
-        results[RESULT_COLUMNS::MULT]=global::to_string(logreg2.getMULTPropability(MATRIX_INDEX_A1mB1m));
-        results[RESULT_COLUMNS::ORMIO]=global::to_string(exp(logreg2.beta(MATRIX_INDEX_A1m)));
-        results[RESULT_COLUMNS::ORMIOL]=global::to_string(exp(logreg2.lowCI(MATRIX_INDEX_A1m)));
-        results[RESULT_COLUMNS::ORMIOH]=global::to_string(exp(logreg2.highCI(MATRIX_INDEX_A1m)));
-        results[RESULT_COLUMNS::ORMOI]=global::to_string(exp(logreg2.beta(MATRIX_INDEX_B1m)));
-        results[RESULT_COLUMNS::ORMOIL]=global::to_string(exp(logreg2.lowCI(MATRIX_INDEX_B1m)));
-        results[RESULT_COLUMNS::ORMOIH]=global::to_string(exp(logreg2.highCI(MATRIX_INDEX_B1m)));
-        results[RESULT_COLUMNS::ORMII]=global::to_string(exp(logreg2.beta(MATRIX_INDEX_A1mB1m)));
-        results[RESULT_COLUMNS::ORMIIL]=global::to_string(exp(logreg2.lowCI(MATRIX_INDEX_A1mB1m)));
-        results[RESULT_COLUMNS::ORMIIH]=global::to_string(exp(logreg2.highCI(MATRIX_INDEX_A1mB1m)));
+        results[RESULT_COLUMNS::MULT]=global::to_string(cdf(chi2,pow(logreg2.z(LR_INDEX_A1mB1m),2)));
+        results[RESULT_COLUMNS::ORMIO]=global::to_string(logreg2.oddsratio(LR_INDEX_A1m));
+        results[RESULT_COLUMNS::ORMIOL]=global::to_string(logreg2.lowCI(LR_INDEX_A1m));
+        results[RESULT_COLUMNS::ORMIOH]=global::to_string(logreg2.highCI(LR_INDEX_A1m));
+        results[RESULT_COLUMNS::ORMOI]=global::to_string(logreg2.oddsratio(LR_INDEX_B1m));
+        results[RESULT_COLUMNS::ORMOIL]=global::to_string(logreg2.lowCI(LR_INDEX_B1m));
+        results[RESULT_COLUMNS::ORMOIH]=global::to_string(logreg2.highCI(LR_INDEX_B1m));
+        results[RESULT_COLUMNS::ORMII]=global::to_string(logreg2.oddsratio(LR_INDEX_A1mB1m));
+        results[RESULT_COLUMNS::ORMIIL]=global::to_string(logreg2.lowCI(LR_INDEX_A1mB1m));
+        results[RESULT_COLUMNS::ORMIIH]=global::to_string(logreg2.highCI(LR_INDEX_A1mB1m));
+        double apmvalue;
+        apmvalue=logreg2.calculateAPMValue(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+        results[RESULT_COLUMNS::APM]=global::to_string(apmvalue);
+        double apmerror;
+        apmerror=logreg2.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+        results[RESULT_COLUMNS::APML]=global::to_string(logreg2.lowCI(apmvalue,apmerror));
+        results[RESULT_COLUMNS::APMH]=global::to_string(logreg2.highCI(apmvalue,apmerror));
+        boost::math::normal normaldist=boost::math::normal(0,apmerror);
+        results[RESULT_COLUMNS::APMP]=global::to_string(1-cdf(normaldist,abs(apmvalue))*2);
+
         }
-      if (logreg1.beta(MATRIX_INDEX_A1B0)<0 &&
-          logreg1.beta(MATRIX_INDEX_A1B0)<logreg1.beta(MATRIX_INDEX_A0B1) &&
-          logreg1.beta(MATRIX_INDEX_A1B0)<logreg1.beta(MATRIX_INDEX_A1B1))
+      if (logreg1.beta(LR_INDEX_A1B0)<0 &&
+          logreg1.beta(LR_INDEX_A1B0)<logreg1.beta(LR_INDEX_A0B1) &&
+          logreg1.beta(LR_INDEX_A1B0)<logreg1.beta(LR_INDEX_A1B1))
         recode=1;
-      if (logreg1.beta(MATRIX_INDEX_A0B1)<0 &&
-          logreg1.beta(MATRIX_INDEX_A0B1)<logreg1.beta(MATRIX_INDEX_A1B0) &&
-          logreg1.beta(MATRIX_INDEX_A0B1)<logreg1.beta(MATRIX_INDEX_A1B1)) {
+      if (logreg1.beta(LR_INDEX_A0B1)<0 &&
+          logreg1.beta(LR_INDEX_A0B1)<logreg1.beta(LR_INDEX_A1B0) &&
+          logreg1.beta(LR_INDEX_A0B1)<logreg1.beta(LR_INDEX_A1B1)) {
         recode=2;
         swapInteractions();
         }
-      if (logreg1.beta(MATRIX_INDEX_A1B1)<0 &&
-          logreg1.beta(MATRIX_INDEX_A1B1)<logreg1.beta(MATRIX_INDEX_A1B0) &&
-          logreg1.beta(MATRIX_INDEX_A1B1)<logreg1.beta(MATRIX_INDEX_A0B1)) {
+      if (logreg1.beta(LR_INDEX_A1B1)<0 &&
+          logreg1.beta(LR_INDEX_A1B1)<logreg1.beta(LR_INDEX_A1B0) &&
+          logreg1.beta(LR_INDEX_A1B1)<logreg1.beta(LR_INDEX_A0B1)) {
         recode=3;
         swapInteractions();
         }
@@ -153,20 +163,40 @@ void Analysis::run(int interactivemarkeridx) {
       results[RESULT_COLUMNS::RECODE]=global::to_string(recode);
       results[RESULT_COLUMNS::THRESHOLD]=global::to_string(param.threshold);
       if (!belowCutOff(riskmatrix)) {
-        setCleanData(markeridx,phenotype,covdata2,logreg1.y,logreg1.x,MATRIX_INDEX_COV2+ncovariate);
-        logreg1.firstx=1;
+        setCleanData(markeridx,phenotype,covdata2,logreg1.y,logreg1.x,MATRIX_INDEX_COV2+ncovariate,false);
         belowthreshold=logreg1.maximumLikelihoodRegression(param.iterations,param.threshold);
-        results[RESULT_COLUMNS::STABLELRA]=belowthreshold?STATUS_TEXT::CONVERGENCE:STATUS_TEXT::NO_CONVERGENCE;
-        results[RESULT_COLUMNS::ORIO]=global::to_string(logreg1.beta(MATRIX_INDEX_A1B0));
-        results[RESULT_COLUMNS::ORIOL]=global::to_string(logreg1.lowCI(MATRIX_INDEX_A1B0));
-        results[RESULT_COLUMNS::ORIOH]=global::to_string(logreg1.highCI(MATRIX_INDEX_A1B0));
-        results[RESULT_COLUMNS::ORII]=global::to_string(logreg1.beta(MATRIX_INDEX_A1B1));
-        results[RESULT_COLUMNS::ORIIL]=global::to_string(logreg1.lowCI(MATRIX_INDEX_A1B1));
-        results[RESULT_COLUMNS::ORIIH]=global::to_string(logreg1.highCI(MATRIX_INDEX_A1B1));
-        results[RESULT_COLUMNS::OROI]=global::to_string(logreg1.beta(MATRIX_INDEX_A0B1));
-        results[RESULT_COLUMNS::OROIL]=global::to_string(logreg1.lowCI(MATRIX_INDEX_A0B1));
-        results[RESULT_COLUMNS::OROIH]=global::to_string(logreg1.highCI(MATRIX_INDEX_A0B1));
-
+        results[RESULT_COLUMNS::STABLELRA]=belowthreshold?STATUS_TEXT::CONVERGENCE:STATUS_TEXT::NO_CONVERGENCE;	
+        results[RESULT_COLUMNS::ORIO]=global::to_string(logreg1.oddsratio(LR_INDEX_A1B0));
+        results[RESULT_COLUMNS::ORIOL]=global::to_string(logreg1.lowCI(LR_INDEX_A1B0));
+        results[RESULT_COLUMNS::ORIOH]=global::to_string(logreg1.highCI(LR_INDEX_A1B0));
+        results[RESULT_COLUMNS::ORII]=global::to_string(logreg1.oddsratio(LR_INDEX_A1B1));
+        results[RESULT_COLUMNS::ORIIL]=global::to_string(logreg1.lowCI(LR_INDEX_A1B1));
+        results[RESULT_COLUMNS::ORIIH]=global::to_string(logreg1.highCI(LR_INDEX_A1B1));
+        results[RESULT_COLUMNS::OROI]=global::to_string(logreg1.oddsratio(LR_INDEX_A0B1));
+        results[RESULT_COLUMNS::OROIL]=global::to_string(logreg1.lowCI(LR_INDEX_A0B1));
+        results[RESULT_COLUMNS::OROIH]=global::to_string(logreg1.highCI(LR_INDEX_A0B1));
+        double apvalue=0;
+        switch(param.apcalculation) {
+          case PROPORTION_DISEASE:
+            apvalue=logreg1.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg1.oddsratio(LR_INDEX_A1B1);
+            break;
+          case PROPORTION_EFFECT:
+            apvalue=logreg1.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg1.oddsratio(LR_INDEX_A1B1)-1;
+            break;
+          case PROPORTION_CORRECTED:
+            apvalue=logreg1.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/
+                    max(logreg1.oddsratio(LR_INDEX_A1B1),logreg1.oddsratio(LR_INDEX_A1B0)+logreg1.oddsratio(LR_INDEX_A0B1)-1);
+            break;
+          }
+        double apmvalue;
+        apmvalue=logreg1.calculateAPMValue(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+        results[RESULT_COLUMNS::APM]=global::to_string(apmvalue);
+        double apmerror;
+        apmerror=logreg1.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+        results[RESULT_COLUMNS::APML]=global::to_string(logreg1.lowCI(apmvalue,apmerror));
+        results[RESULT_COLUMNS::APMH]=global::to_string(logreg1.highCI(apmvalue,apmerror));
+        boost::math::normal normaldist=boost::math::normal(0,apmerror);
+        results[RESULT_COLUMNS::APMP]=global::to_string(1-cdf(normaldist,abs(apmvalue))*2);
         }
 
 
@@ -327,8 +357,6 @@ void Analysis::calculateRiskMatrix(int *riskmatrix) {
       continue;
     fill_n(covdata1[y1],MATRIX_INDEX_COV1,NO_INTERACTION);
     fill_n(covdata2[y1],MATRIX_INDEX_COV2,NO_INTERACTION);
-    covdata1[y1][LRTHETA0_M]=1;
-    covdata2[y1][LRTHETA0]=1;
     affstatus=phenotype[y1]-1;
     if (riskfactors[y1]==NO_RISK && interaction[y1]==NO_INTERACTION) {
       covdata2[y1][MATRIX_INDEX_A0B0]=INTERACTION;
@@ -361,19 +389,23 @@ bool Analysis::belowCutOff(int *riskmatrix) {
   return false;
   }
 //------------------------------------------------------------------------------
-void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, MatrixXd &destx, int dimx) {
-  int y2,x1;
+void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, MatrixXd &destx, int dimx, bool a0b0) {
+  int y2,x1,x2;
 
   desty.resize(nindividualid);
-  destx.resize(nindividualid,dimx);
+  destx.resize(nindividualid,dimx+1-!a0b0);
   for (int y1=y2=0; y1<nindividualid; y1++) {
     if (!validIndividualData(y1,markeridx))
       continue;
     desty(y2)=y[y1]-1;
-    for (x1=0; x1<dimx; x1++) {
+    destx(y2,LR_BETA0)=1;
+    for (x1=0,x2=1; x1<dimx; x1++) {
       if (x[y1][x1]==NA_INTERACTION)
         break;
-      destx(y2,x1)=x[y1][x1];
+      if (x1==MATRIX_INDEX_A0B0 && !a0b0)
+	continue;
+      destx(y2,x2)=x[y1][x1];
+      x2++;
       }
     if (x1==dimx)
       y2++;
@@ -381,7 +413,7 @@ void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, M
   desty.conservativeResize(y2);
   destx.conservativeResize(y2,NoChange_t());
   }
-//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------	
 void Analysis::shufflePhenotype() {
   memcpy(permphenotype,phenotype,nindividualid*sizeof(int));
   CALC::randomShuffle(permphenotype,nindividualid);

@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include "global.h"
 #include "logreg.h"
+#include <boost/math/distributions/normal.hpp>
+#include <boost/math/distributions/chi_squared.hpp>
 //------------------------------------------------------------------------------
 namespace GenEnvGen2I {
 
@@ -20,8 +22,10 @@ namespace GenEnvGen2I {
   enum PHENOTYPE_TYPE {PHENOTYPE_UNKNOWN, PHENOTYPE_UNAFFECTED,PHENOTYPE_AFFECTED};
   enum GENDER_TYPE {GENDER_UNKNOWN,GENDER_MALE,GENDER_FEMALE};
   enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_POSITION_OFFSET=1,INDEX_NA=0};
-  enum MATRIX_TYPE {MATRIX_INDEX_A0B0,LRTHETA0,MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_COV2};
-  enum MATRIX_MULT_TYPE {LRTHETA0_M,MATRIX_INDEX_A1m,MATRIX_INDEX_B1m,MATRIX_INDEX_A1mB1m,MATRIX_INDEX_COV1};
+  enum MATRIX_TYPE {MATRIX_INDEX_A0B0,MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_COV2};
+  enum MATRIX_MULT_TYPE {MATRIX_INDEX_A1m,MATRIX_INDEX_B1m,MATRIX_INDEX_A1mB1m,MATRIX_INDEX_COV1};
+  enum LR_TYPE {LR_BETA0,LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1,LR_INDEX_COV2};
+  enum LR_MULT_TYPE {LR_BETA0_M,LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m,LR_INDEX_COV1};
   enum ZYGOSITY_TYPE {HOMOZYGOTE_PRIMARY, ZYGOTE_UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY};
   enum RISKFACTOR_TYPE {NO_RISK,RISK,NA_RISK=-1};
   enum INTERACTION_TYPE {NO_INTERACTION,INTERACTION,NA_INTERACTION=-1};
@@ -76,7 +80,7 @@ namespace GenEnvGen2I {
       bool isDominantOrXMale(int individualidx,int markeridx);
       void calculateRiskMatrix(int *riskmatrix);
       bool belowCutOff(int *riskmatrix);
-      void setCleanData(int markeridx,int *y, double **x, VectorXd &desty, MatrixXd &destx, int dimx);
+      void setCleanData(int markeridx,int *y, double **x, VectorXd &desty, MatrixXd &destx, int dimx, bool a0b0);
       void shufflePhenotype();
       void swapInteractions();
       static void printResults(ostream &stream,string *results);
