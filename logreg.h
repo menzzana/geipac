@@ -21,6 +21,8 @@ class LogisticRegression {
 
     void clearArrays();
     bool maximumLikelihoodRegression(int iterations, double minerror);
+    double invLogit(double p);
+    double invOdds(double p);
     double lowCI(int idx);
     double highCI(int idx);
     double lowCI(double value, double error);

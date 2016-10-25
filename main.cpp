@@ -43,6 +43,7 @@ void CleanUp(bool exitvalue) {
 int main(int argc, char **argv) {
   prgm_opt::variables_map option_map;
   prgm_opt::options_description options("Options");
+  ofstream fpresult,fppermutation;
   IMarkerData *imarker;
   IVariableData *ivariable;
   LimitData *limit;
@@ -108,7 +109,7 @@ int main(int argc, char **argv) {
         myanalysis.param.model=s1.compare(GenEnvGen2I::DOM)==0?GenEnvGen2I::DOMINANT:
           myanalysis.param.model=s1.compare(GenEnvGen2I::REC)==0?GenEnvGen2I::RECESSIVE:0;
         }
-      if (option_map.count(CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[1])) {
+      if (option_map.count(CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[1])) {	
         char c1=tolower(option_map[CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[1]].as<char>());
         myanalysis.param.permutation_output=(c1==GenEnvGen2I::RAWDATA?GenEnvGen2I::PERMUTATION_RAWDATA:
           c1==GenEnvGen2I::TOTALDATA?GenEnvGen2I::PERMUTATION_TOTALDATA:0);
@@ -154,7 +155,6 @@ int main(int argc, char **argv) {
       Loader::deleteResultFile(FILE_TEXT::MARKER_PERMUTATION_RESULT);
       Loader::deleteResultFile(FILE_TEXT::TOTAL_PERMUTATION_RESULT);
       Loader::deleteResultFile(FILE_TEXT::TOTAL_PERMUTATIONS);
-      for (int i1=1; Loader::deleteResultFile(global::to_string(boost::format(FILE_TEXT::RESULT_PERMUTATION) % i1)); i1++);
       // Print some information message.
       WRITE(HEADER_TEXT::RUN);
       WRITE_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
@@ -207,11 +207,24 @@ int main(int argc, char **argv) {
       }
     // Analysis
     myanalysis.initialize();
-    GenEnvGen2I::Analysis::printResults(cout,NULL);
+    fpresult.open((outputdir+FILE_TEXT::RESULT).c_str());
+    myanalysis.param.wres=&fpresult;
+    GenEnvGen2I::Analysis::printResults(*myanalysis.param.wres,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::LENGTH_TEXT);
+    GenEnvGen2I::Analysis::printResults(*myanalysis.param.wres,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES);
+    *myanalysis.param.wres<<endl;
+    if (myanalysis.param.permutations>0) {
+      fppermutation.open((outputdir+FILE_TEXT::MARKER_PERMUTATION_RESULT).c_str());
+      myanalysis.param.wperm=&fppermutation;
+      GenEnvGen2I::Analysis::printResults(*myanalysis.param.wperm,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::PERM);
+      GenEnvGen2I::Analysis::printResults(*myanalysis.param.wperm,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE); 
+      *myanalysis.param.wperm<<endl;
+      }
     for (int imarkeridx=0; imarkeridx<myanalysis.nimarkerid; imarkeridx++) {
       WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.markerid[myanalysis.imarkerid[imarkeridx]]);
       myanalysis.run(myanalysis.imarkerid[imarkeridx]);
       }
+    fpresult.close();
+    fppermutation.close();
     CleanUp(EXIT_SUCCESS);
     }
   catch(exception &e) {

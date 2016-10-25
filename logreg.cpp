@@ -16,6 +16,7 @@ void LogisticRegression::clearArrays() {
   oddsratio.resize(x.cols());
   beta.resize(x.cols());
   beta.setConstant(x.cols(),0);
+  variancecovariance.resize(0,0);
   }
 //---------------------------------------------------------------------------
 bool LogisticRegression::maximumLikelihoodRegression(int iterations, double minerror) {
@@ -31,8 +32,13 @@ bool LogisticRegression::maximumLikelihoodRegression(int iterations, double mine
     oldbeta=beta;
     p=x*beta;
     for (int y1=0; y1<x.rows(); y1++) {
-      p(y1)=exp(p(y1))/(exp(p(y1))+1);
-      pnp=p(y1)*(1-p(y1));
+      p(y1)=invLogit(p(y1));
+      //p(y1)=exp(p(y1))/(exp(p(y1))+1);
+   
+      pnp=invOdds(p(y1));
+      //pnp=p(y1)*(1-p(y1));
+      
+      
       p(y1)=y(y1)-p(y1);
       for (int x1=0; x1<x.cols(); x1++)
         j(x1,y1)=x(y1,x1)*pnp;
@@ -50,7 +56,15 @@ bool LogisticRegression::maximumLikelihoodRegression(int iterations, double mine
     z(yx1)=beta(yx1)/stderr(yx1);
     oddsratio(yx1)=exp(beta(yx1));
     }
-  return iter1==iterations;
+  return iter1<iterations;
+  }
+//---------------------------------------------------------------------------
+double LogisticRegression::invLogit(double p) {
+  return exp(p)/(exp(p)+1);
+  }
+//---------------------------------------------------------------------------
+double LogisticRegression::invOdds(double p) {
+  return p*(1-p);
   }
 //---------------------------------------------------------------------------
 double LogisticRegression::lowCI(int idx) {

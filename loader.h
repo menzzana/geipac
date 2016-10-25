@@ -13,8 +13,7 @@
 //------------------------------------------------------------------------------
 class Loader {
   public:
-    #define DELIMITER "\t "
-
+    #define SEPARATOR "\t "
     static bool deleteResultFile(string filename);
     static string setOutputDirectory(string dirname);
     static string *splitDataString(string fstr, int ndatacolumns);

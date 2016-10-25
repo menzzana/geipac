@@ -5,7 +5,7 @@
 //------------------------------------------------------------------------------
 namespace CMDOPTIONS {
   const char *const HELP_OPTION[]={"help,h","help","Displays available commands\n"};
-  const char *const APPN_OPTION[]={"appnegative,n","appnegative","if negative APP values should be included in total permutation calculations\n"};
+  const char *const APPN_OPTION[]={"appnegative,n","appnegative","Set this flag if negative APP values should be included in total permutation\n"};
   const char *const AP_OPTION[]={"apcalculation,a","apcalculation","Sets how the attributable proportion should be calculated. [D/E/C]\n"};
   const char *const BASE_OPTION[]={"basename,b","basename","Specify the base name of the plink input files\n"};
   const char *const CUTOFF_OPTION[]={"cutoff,c","cutoff","Specifies the minimum number of individuals in a group [Default: 5]\n"};
@@ -17,7 +17,7 @@ namespace CMDOPTIONS {
   const char *const MARKER_OPTION[]={"markerfile,m","markerfile","Specifies a file containing interaction markers targeted for analysis.\n"};
   const char *const OUTPUT_OPTION[]={"outputdir,o","outputdir","Specifies the directory where the output files will be stored. Default: None (Creates a result directory automatically)\n"};
   const char *const PERMUTATION_OPTION[]={"permutations,p","permutations","Specifies the number of case/control permutations to perform. Default: 0\n"};
-  const char *const PERMUTATIONOUTPUT_OPTION[]={"permutationoutput,e","permutationouput","Sets if permutation rawdata should be printed to various files [R/T]\n"};
+  const char *const PERMUTATIONOUTPUT_OPTION[]={"permutationoutput,e","permutationoutput","Sets if permutation rawdata should be printed to various files [R/T]\n"};
   const char *const SEED_OPTION[]={"seed,s","seed","Specifies the random seed used by the analysis [Default: 123456789]\n"};
   }
 //------------------------------------------------------------------------------
@@ -37,12 +37,11 @@ namespace ERROR_TEXT {
   }
 //------------------------------------------------------------------------------
 namespace FILE_TEXT {
-  const char RESULT[]="results.txt";
-  const char MARKER_PERMUTATION_RESULT[]="marker_permutation_results.txt";
-  const char TOTAL_PERMUTATION_RESULT[]="total_permutation_results.txt";
-  const char TOTAL_PERMUTATIONS[]="total_permutations.txt";
-  const char RESULT_PERMUTATION[]="results_permutation_%s.txt";
-  const char OUTPUT_DIRECTORY[]="geisa_results_";
+  const char RESULT[]="/results.txt";
+  const char MARKER_PERMUTATION_RESULT[]="/marker_permutation_results.txt";
+  const char TOTAL_PERMUTATION_RESULT[]="/total_permutation_results.txt";
+  const char TOTAL_PERMUTATIONS[]="/total_permutations.txt";
+  const char OUTPUT_DIRECTORY[]="/geisa_results_";
   }
 //------------------------------------------------------------------------------
 // Status Messages
@@ -50,6 +49,7 @@ namespace FILE_TEXT {
 namespace STATUS_TEXT {
   const char IMARKER[]="Analyzing interaction with marker : %s";
   const char PERMUTATION_START[]="Starting permutation iteration %d";
+  const char NO_PERMUTATION[]="No";
   const char ORIGINAL_START[]="Starting analysis of original results";
   const char WRITE_PERMUTATION[]="Writing permutation results";
   const char OUTPUT_READY[]="Ready.";

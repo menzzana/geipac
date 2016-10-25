@@ -30,9 +30,10 @@ string *Loader::splitDataString(string fstr,int ndatacolumns) {
   string *data;
 
   data=new string[ndatacolumns];
+  fill_n(data,ndatacolumns,"");
   for (i1=i2=0; i2<ndatacolumns; i2++) {
-    data[i2]=boost::algorithm::trim_copy(fstr.substr(i1,fstr.find_first_of(DELIMITER,i1)-i1));
-    i1=fstr.find_first_of(DELIMITER,i1)+1;
+    data[i2]=boost::algorithm::trim_copy(fstr.substr(i1,fstr.find_first_of(SEPARATOR,i1)-i1));
+    i1=fstr.find_first_of(SEPARATOR,i1)+1;
     if (i1==0)
       break;
     }
@@ -42,7 +43,7 @@ string *Loader::splitDataString(string fstr,int ndatacolumns) {
 int Loader::getColumnSize(string fstr) {
   int col,i1;
 
-  for (col=i1=0; (i1=fstr.find_first_of(DELIMITER,i1)+1)>0; col++);
+  for (col=i1=0; (i1=fstr.find_first_of(SEPARATOR,i1)+1)>0; col++);
   return col+1;
   }
 //---------------------------------------------------------------------------
@@ -95,7 +96,7 @@ LimitData *LimitData::getSingleRowData(string fstr,...) {
       data1=this->addEntry<LimitData>();
       data1->cutoff_app=atof(splitdata[app_col].c_str());
       data1->cutoff_mult=atof(splitdata[mult_col].c_str());
-      }
+      }  
   delete[] splitdata;
   return data1;
   }

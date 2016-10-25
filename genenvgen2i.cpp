@@ -22,6 +22,8 @@ Analysis::Analysis() {
   covariate=NULL;
   cutoff_mult=NULL;
   cutoff_app=NULL;
+  permuted_mult=NULL;
+  permuted_app=NULL;
   gender=NULL;
   phenotype=NULL;
   permphenotype=NULL;
@@ -51,6 +53,8 @@ Analysis::~Analysis() {
   delete[] covariate;
   delete cutoff_mult;
   delete cutoff_app;
+  delete permuted_mult;
+  delete permuted_app;
   delete gender;
   delete phenotype;
   delete permphenotype;
@@ -65,8 +69,12 @@ Analysis::~Analysis() {
 void Analysis::initialize() {
   riskfactors=new int[nindividualid];
   interaction=new int[nindividualid];
-  if (param.permutations>0)
+  if (param.permutations>0) {
     permphenotype=new int[nindividualid];
+    memcpy(permphenotype,phenotype,nindividualid*sizeof(int));
+    permuted_mult=new double[param.permutations];
+    permuted_app=new double[param.permutations];
+    }
   covdata1=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV1+ncovariate);
   covdata2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
   for (int y1=0; y1<nindividualid; y1++)
@@ -76,138 +84,186 @@ void Analysis::initialize() {
       }
   }
 //------------------------------------------------------------------------------
+void Analysis::reset() {
+  if (param.permutations>0) {
+    memcpy(phenotype,permphenotype,nindividualid*sizeof(int));
+    fill_n(permuted_mult,param.permutations,MAX_P_VALUE);
+    fill_n(permuted_app,param.permutations,MAX_P_VALUE);
+    }
+  CALC::sran1(param.randomseed);
+  }
+//------------------------------------------------------------------------------
 void Analysis::run(int interactivemarkeridx) {
+  int npermuted[RESULT_COLUMNS::LENGTH_VALUES];
+  string results_text[RESULT_COLUMNS::LENGTH_TEXT];
+  double results_value[RESULT_COLUMNS::LENGTH_VALUES],original_value[RESULT_COLUMNS::LENGTH_VALUES];
+  double perm_value[RESULT_COLUMNS::LENGTH_VALUES];
+  
+  setInteraction(interactivemarkeridx);
+  for (int markeridx=0; markeridx<nmarkerid; markeridx++) {
+    reset();
+    for (int permidx=0; permidx<=param.permutations; permidx++) {
+      if (permidx==0)
+        WRITE(STATUS_TEXT::ORIGINAL_START);
+      else {
+        WRITE_VALUE(STATUS_TEXT::PERMUTATION_START,permidx);
+	CALC::randomShuffle(phenotype,nindividualid);
+	}
+      results_text[RESULT_COLUMNS::INTERACTION]=markerid[interactivemarkeridx];
+      results_text[RESULT_COLUMNS::CHR]=chromosome[markeridx];
+      results_text[RESULT_COLUMNS::SNP]=markerid[markeridx];
+      results_text[RESULT_COLUMNS::PERM]=permidx==0?STATUS_TEXT::NO_PERMUTATION:global::to_string(permidx);
+      analyzeData(markeridx,results_text,results_value);
+      if (permidx==0 || param.permutation_output==PERMUTATION_RAWDATA) {
+        printResults(*param.wres,results_text,RESULT_COLUMNS::LENGTH_TEXT);
+        printResults(*param.wres,results_value,RESULT_COLUMNS::LENGTH_VALUES);
+        *param.wres<<endl;
+        }
+      if (param.permutations==0)
+	continue;
+      if (permidx==0) {
+	fill_n(npermuted,RESULT_COLUMNS::LENGTH_VALUES,0);
+	memcpy(original_value,results_value,RESULT_COLUMNS::LENGTH_VALUES*sizeof(double));
+	perm_value[RESULT_COLUMNS::APP]=MAX_P_VALUE;
+	if (!param.appnegative && results_value[RESULT_COLUMNS::APP]<0)
+	  perm_value[RESULT_COLUMNS::APP]=results_value[RESULT_COLUMNS::APP];
+	perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
+	continue;
+	}
+      for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
+	if (RESULT_COLUMNS::PERMUTED_VALUE[residx])
+	  switch(residx) {
+	    case RESULT_COLUMNS::STABLELRA:
+	    case RESULT_COLUMNS::STABLELRM:
+	      npermuted[residx]+=results_value[residx];
+	      break;
+	    case RESULT_COLUMNS::APP:
+	      if (param.appnegative || results_value[RESULT_COLUMNS::APP]>=0)
+		perm_value[residx]=min(perm_value[residx],results_value[residx]);
+	      break;
+	    case RESULT_COLUMNS::MULT:
+	      perm_value[residx]=min(perm_value[residx],results_value[residx]);
+	      break;
+	    default:
+	      if (results_value[residx]<=original_value[residx])
+		npermuted[residx]++;
+	      break;
+	    }
+      }
+    if (param.permutations>0) {
+      printResults(*param.wperm,results_text,RESULT_COLUMNS::PERM);
+      for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
+        if (RESULT_COLUMNS::PERMUTED_VALUE[residx] && residx!=RESULT_COLUMNS::APP && residx!=RESULT_COLUMNS::MULT)
+          perm_value[residx]=((double)npermuted[residx])/(double)param.permutations;
+      printResults(*param.wperm,perm_value,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
+      *param.wperm<<endl;
+      }
+    }
+  }
+//------------------------------------------------------------------------------
+void Analysis::analyzeData(int markeridx,string *results_text, double *results_value) {
+  LogisticRegression logreg;
   bool belowthreshold;
   int recode,riskmatrix[N_RISK_MATRIX];
-  string results[RESULT_COLUMNS::LENGTH_RESULTS];
   char riskallele;
 
-  CALC::sran1(param.randomseed);
   boost::math::chi_squared chi2(1);
-  setInteraction(interactivemarkeridx);
-  for (int permidx=0; permidx<=param.permutations; permidx++) {
-    if (permidx==0)
-      WRITE(STATUS_TEXT::ORIGINAL_START);
-    else
-      WRITE_VALUE(STATUS_TEXT::PERMUTATION_START,permidx);
-    for (int markeridx=0; markeridx<nmarkerid; markeridx++) {
-      recode=0;
-      memcpy(interaction,imarkinteraction,nindividualid*sizeof(int));
-      for (int i1=0; i1<RESULT_COLUMNS::LENGTH_RESULTS; i1++)
-        results[i1]="0.0";
-      results[RESULT_COLUMNS::STABLELRM]="NA";
-      results[RESULT_COLUMNS::STABLELRA]="NA";
-      results[RESULT_COLUMNS::PERM]=global::to_string(param.permutations);
-      results[RESULT_COLUMNS::INTERACTION]=markerid[interactivemarkeridx];
-      results[RESULT_COLUMNS::CHR]=chromosome[markeridx];
-      results[RESULT_COLUMNS::SNP]=markerid[markeridx];
-      riskallele=calculateRiskAllele(markeridx,results);
-      results[RESULT_COLUMNS::RISK]=riskallele;
-      calculateRiskFactors(markeridx,riskallele,recode);
-      calculateRiskMatrix(riskmatrix);
-      setCleanData(markeridx,phenotype,covdata2,logreg1.y,logreg1.x,MATRIX_INDEX_COV2+ncovariate,false);
-      belowthreshold=logreg1.maximumLikelihoodRegression(param.iterations,param.threshold);
-      if (!belowCutOff(riskmatrix)) {
-        setCleanData(markeridx,phenotype,covdata1,logreg2.y,logreg2.x,MATRIX_INDEX_COV1+ncovariate,true);
-        belowthreshold=logreg2.maximumLikelihoodRegression(param.iterations,param.threshold);
-        results[RESULT_COLUMNS::STABLELRM]=belowthreshold?STATUS_TEXT::CONVERGENCE:STATUS_TEXT::NO_CONVERGENCE;
-        results[RESULT_COLUMNS::MULT]=global::to_string(cdf(chi2,pow(logreg2.z(LR_INDEX_A1mB1m),2)));
-        results[RESULT_COLUMNS::ORMIO]=global::to_string(logreg2.oddsratio(LR_INDEX_A1m));
-        results[RESULT_COLUMNS::ORMIOL]=global::to_string(logreg2.lowCI(LR_INDEX_A1m));
-        results[RESULT_COLUMNS::ORMIOH]=global::to_string(logreg2.highCI(LR_INDEX_A1m));
-        results[RESULT_COLUMNS::ORMOI]=global::to_string(logreg2.oddsratio(LR_INDEX_B1m));
-        results[RESULT_COLUMNS::ORMOIL]=global::to_string(logreg2.lowCI(LR_INDEX_B1m));
-        results[RESULT_COLUMNS::ORMOIH]=global::to_string(logreg2.highCI(LR_INDEX_B1m));
-        results[RESULT_COLUMNS::ORMII]=global::to_string(logreg2.oddsratio(LR_INDEX_A1mB1m));
-        results[RESULT_COLUMNS::ORMIIL]=global::to_string(logreg2.lowCI(LR_INDEX_A1mB1m));
-        results[RESULT_COLUMNS::ORMIIH]=global::to_string(logreg2.highCI(LR_INDEX_A1mB1m));
-        double apmvalue;
-        apmvalue=logreg2.calculateAPMValue(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
-        results[RESULT_COLUMNS::APM]=global::to_string(apmvalue);
-        double apmerror;
-        apmerror=logreg2.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
-        results[RESULT_COLUMNS::APML]=global::to_string(logreg2.lowCI(apmvalue,apmerror));
-        results[RESULT_COLUMNS::APMH]=global::to_string(logreg2.highCI(apmvalue,apmerror));
-        boost::math::normal normaldist=boost::math::normal(0,apmerror);
-        results[RESULT_COLUMNS::APMP]=global::to_string(1-cdf(normaldist,abs(apmvalue))*2);
-
-        }
-      if (logreg1.beta(LR_INDEX_A1B0)<0 &&
-          logreg1.beta(LR_INDEX_A1B0)<logreg1.beta(LR_INDEX_A0B1) &&
-          logreg1.beta(LR_INDEX_A1B0)<logreg1.beta(LR_INDEX_A1B1))
-        recode=1;
-      if (logreg1.beta(LR_INDEX_A0B1)<0 &&
-          logreg1.beta(LR_INDEX_A0B1)<logreg1.beta(LR_INDEX_A1B0) &&
-          logreg1.beta(LR_INDEX_A0B1)<logreg1.beta(LR_INDEX_A1B1)) {
-        recode=2;
-        swapInteractions();
-        }
-      if (logreg1.beta(LR_INDEX_A1B1)<0 &&
-          logreg1.beta(LR_INDEX_A1B1)<logreg1.beta(LR_INDEX_A1B0) &&
-          logreg1.beta(LR_INDEX_A1B1)<logreg1.beta(LR_INDEX_A0B1)) {
-        recode=3;
-        swapInteractions();
-        }
-      if (recode>0) {
-        calculateRiskFactors(markeridx,riskallele,recode);
-        calculateRiskMatrix(riskmatrix);
-        }
-      results[RESULT_COLUMNS::IND00_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND00_0-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND00_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND00_1-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND01_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND01_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND01_1-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND10_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND10_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND10_1-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND11_0]=global::to_string(riskmatrix[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::IND11_1]=global::to_string(riskmatrix[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0]);
-      results[RESULT_COLUMNS::RECODE]=global::to_string(recode);
-      results[RESULT_COLUMNS::THRESHOLD]=global::to_string(param.threshold);
-      if (!belowCutOff(riskmatrix)) {
-        setCleanData(markeridx,phenotype,covdata2,logreg1.y,logreg1.x,MATRIX_INDEX_COV2+ncovariate,false);
-        belowthreshold=logreg1.maximumLikelihoodRegression(param.iterations,param.threshold);
-        results[RESULT_COLUMNS::STABLELRA]=belowthreshold?STATUS_TEXT::CONVERGENCE:STATUS_TEXT::NO_CONVERGENCE;	
-        results[RESULT_COLUMNS::ORIO]=global::to_string(logreg1.oddsratio(LR_INDEX_A1B0));
-        results[RESULT_COLUMNS::ORIOL]=global::to_string(logreg1.lowCI(LR_INDEX_A1B0));
-        results[RESULT_COLUMNS::ORIOH]=global::to_string(logreg1.highCI(LR_INDEX_A1B0));
-        results[RESULT_COLUMNS::ORII]=global::to_string(logreg1.oddsratio(LR_INDEX_A1B1));
-        results[RESULT_COLUMNS::ORIIL]=global::to_string(logreg1.lowCI(LR_INDEX_A1B1));
-        results[RESULT_COLUMNS::ORIIH]=global::to_string(logreg1.highCI(LR_INDEX_A1B1));
-        results[RESULT_COLUMNS::OROI]=global::to_string(logreg1.oddsratio(LR_INDEX_A0B1));
-        results[RESULT_COLUMNS::OROIL]=global::to_string(logreg1.lowCI(LR_INDEX_A0B1));
-        results[RESULT_COLUMNS::OROIH]=global::to_string(logreg1.highCI(LR_INDEX_A0B1));
-        double apvalue=0;
-        switch(param.apcalculation) {
-          case PROPORTION_DISEASE:
-            apvalue=logreg1.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg1.oddsratio(LR_INDEX_A1B1);
-            break;
-          case PROPORTION_EFFECT:
-            apvalue=logreg1.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg1.oddsratio(LR_INDEX_A1B1)-1;
-            break;
-          case PROPORTION_CORRECTED:
-            apvalue=logreg1.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/
-                    max(logreg1.oddsratio(LR_INDEX_A1B1),logreg1.oddsratio(LR_INDEX_A1B0)+logreg1.oddsratio(LR_INDEX_A0B1)-1);
-            break;
-          }
-        double aperror;
-        aperror=logreg1.APSEM(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1);
-        results[RESULT_COLUMNS::AP]=global::to_string(apvalue);
-        results[RESULT_COLUMNS::APL]=global::to_string(logreg1.lowCI(apvalue,aperror));
-        results[RESULT_COLUMNS::APH]=global::to_string(logreg1.highCI(apvalue,aperror));
-        boost::math::normal normaldist=boost::math::normal(0,aperror);
-        results[RESULT_COLUMNS::APP]=global::to_string(1-cdf(normaldist,abs(apvalue))*2);
-        }
-
-
-      printResults(cout,results);
-
-
-      }
-
-
-    if (param.permutations>0)
-      shufflePhenotype();
+  recode=0;
+  memcpy(interaction,imarkinteraction,nindividualid*sizeof(int));
+  fill_n(results_value,RESULT_COLUMNS::LENGTH_VALUES,0);
+  riskallele=calculateRiskAllele(markeridx,results_text);
+  results_text[RESULT_COLUMNS::RISK]=riskallele;
+  calculateRiskFactors(markeridx,riskallele,recode);
+  calculateRiskMatrix(riskmatrix);
+  setCleanData(markeridx,phenotype,covdata2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
+  belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
+  if (!belowCutOff(riskmatrix)) {
+    setCleanData(markeridx,phenotype,covdata1,logreg.y,logreg.x,MATRIX_INDEX_COV1+ncovariate,true);
+    belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
+    results_value[RESULT_COLUMNS::STABLELRM]=belowthreshold?1:0;
+    results_value[RESULT_COLUMNS::MULT]=cdf(chi2,pow(logreg.z(LR_INDEX_A1mB1m),2));
+    results_value[RESULT_COLUMNS::ORMIO]=logreg.oddsratio(LR_INDEX_A1m);
+    results_value[RESULT_COLUMNS::ORMIOL]=logreg.lowCI(LR_INDEX_A1m);
+    results_value[RESULT_COLUMNS::ORMIOH]=logreg.highCI(LR_INDEX_A1m);
+    results_value[RESULT_COLUMNS::ORMOI]=logreg.oddsratio(LR_INDEX_B1m);
+    results_value[RESULT_COLUMNS::ORMOIL]=logreg.lowCI(LR_INDEX_B1m);
+    results_value[RESULT_COLUMNS::ORMOIH]=logreg.highCI(LR_INDEX_B1m);
+    results_value[RESULT_COLUMNS::ORMII]=logreg.oddsratio(LR_INDEX_A1mB1m);
+    results_value[RESULT_COLUMNS::ORMIIL]=logreg.lowCI(LR_INDEX_A1mB1m);
+    results_value[RESULT_COLUMNS::ORMIIH]=logreg.highCI(LR_INDEX_A1mB1m);
+    double apmvalue;
+    apmvalue=logreg.calculateAPMValue(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+    results_value[RESULT_COLUMNS::APM]=apmvalue;
+    double apmerror;
+    apmerror=logreg.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+    results_value[RESULT_COLUMNS::APML]=logreg.lowCI(apmvalue,apmerror);
+    results_value[RESULT_COLUMNS::APMH]=logreg.highCI(apmvalue,apmerror);
+    boost::math::normal normaldist=boost::math::normal(0,apmerror);
+    results_value[RESULT_COLUMNS::APMP]=1-cdf(normaldist,abs(apmvalue))*2;
     }
-
+  if (logreg.beta(LR_INDEX_A1B0)<0 &&
+      logreg.beta(LR_INDEX_A1B0)<logreg.beta(LR_INDEX_A0B1) &&
+      logreg.beta(LR_INDEX_A1B0)<logreg.beta(LR_INDEX_A1B1))
+    recode=1;
+  if (logreg.beta(LR_INDEX_A0B1)<0 &&
+      logreg.beta(LR_INDEX_A0B1)<logreg.beta(LR_INDEX_A1B0) &&
+      logreg.beta(LR_INDEX_A0B1)<logreg.beta(LR_INDEX_A1B1)) {
+    recode=2;
+    swapInteractions();
+    }
+  if (logreg.beta(LR_INDEX_A1B1)<0 &&
+      logreg.beta(LR_INDEX_A1B1)<logreg.beta(LR_INDEX_A1B0) &&
+      logreg.beta(LR_INDEX_A1B1)<logreg.beta(LR_INDEX_A0B1)) {
+    recode=3;
+    swapInteractions();
+    }
+  if (recode>0) {
+    calculateRiskFactors(markeridx,riskallele,recode);
+    calculateRiskMatrix(riskmatrix);
+    }
+  results_value[RESULT_COLUMNS::IND00_0]=riskmatrix[RESULT_COLUMNS::IND00_0-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND00_1]=riskmatrix[RESULT_COLUMNS::IND00_1-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND01_0]=riskmatrix[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND01_1]=riskmatrix[RESULT_COLUMNS::IND01_1-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND10_0]=riskmatrix[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND10_1]=riskmatrix[RESULT_COLUMNS::IND10_1-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND11_0]=riskmatrix[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::IND11_1]=riskmatrix[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0];
+  results_value[RESULT_COLUMNS::RECODE]=recode;
+  if (!belowCutOff(riskmatrix)) {
+    setCleanData(markeridx,phenotype,covdata2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
+    belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
+    results_value[RESULT_COLUMNS::STABLELRA]=belowthreshold?1:0;
+    results_value[RESULT_COLUMNS::ORIO]=logreg.oddsratio(LR_INDEX_A1B0);
+    results_value[RESULT_COLUMNS::ORIOL]=logreg.lowCI(LR_INDEX_A1B0);
+    results_value[RESULT_COLUMNS::ORIOH]=logreg.highCI(LR_INDEX_A1B0);
+    results_value[RESULT_COLUMNS::ORII]=logreg.oddsratio(LR_INDEX_A1B1);
+    results_value[RESULT_COLUMNS::ORIIL]=logreg.lowCI(LR_INDEX_A1B1);
+    results_value[RESULT_COLUMNS::ORIIH]=logreg.highCI(LR_INDEX_A1B1);
+    results_value[RESULT_COLUMNS::OROI]=logreg.oddsratio(LR_INDEX_A0B1);
+    results_value[RESULT_COLUMNS::OROIL]=logreg.lowCI(LR_INDEX_A0B1);
+    results_value[RESULT_COLUMNS::OROIH]=logreg.highCI(LR_INDEX_A0B1);
+    double apvalue=0;
+    switch(param.apcalculation) {
+      case PROPORTION_DISEASE:
+        apvalue=logreg.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg.oddsratio(LR_INDEX_A1B1);
+        break;
+      case PROPORTION_EFFECT:
+        apvalue=logreg.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg.oddsratio(LR_INDEX_A1B1)-1;
+        break;
+      case PROPORTION_CORRECTED:
+        apvalue=logreg.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/
+                max(logreg.oddsratio(LR_INDEX_A1B1),logreg.oddsratio(LR_INDEX_A1B0)+logreg.oddsratio(LR_INDEX_A0B1)-1);
+        break;
+      }
+    double aperror;
+    aperror=logreg.APSEM(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1);
+    results_value[RESULT_COLUMNS::AP]=apvalue;
+    results_value[RESULT_COLUMNS::APL]=logreg.lowCI(apvalue,aperror);
+    results_value[RESULT_COLUMNS::APH]=logreg.highCI(apvalue,aperror);
+    boost::math::normal normaldist=boost::math::normal(0,aperror);
+    results_value[RESULT_COLUMNS::APP]=1-cdf(normaldist,abs(apvalue))*2;
+    }
   }
 //------------------------------------------------------------------------------
 void Analysis::alleleSummaryCount(int *alleles,int markeridx) {
@@ -401,7 +457,7 @@ void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, M
       if (x[y1][x1]==NA_INTERACTION)
         break;
       if (x1==MATRIX_INDEX_A0B0 && !a0b0)
-	continue;
+        continue;
       destx(y2,x2)=x[y1][x1];
       x2++;
       }
@@ -411,11 +467,6 @@ void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, M
   desty.conservativeResize(y2);
   destx.conservativeResize(y2,NoChange_t());
   }
-//------------------------------------------------------------------------------	
-void Analysis::shufflePhenotype() {
-  memcpy(permphenotype,phenotype,nindividualid*sizeof(int));
-  CALC::randomShuffle(permphenotype,nindividualid);
-  }
 //------------------------------------------------------------------------------
 void Analysis::swapInteractions() {
   for (int i1=0; i1<nindividualid; i1++)
@@ -423,15 +474,5 @@ void Analysis::swapInteractions() {
       interaction[i1]=interaction[i1]==NO_INTERACTION?INTERACTION:NO_INTERACTION;
   }
 //------------------------------------------------------------------------------
-void Analysis::printResults(ostream &stream,string *results) {
-  #define DELIMITER "\t "
 
-  for (int i1=0; i1<RESULT_COLUMNS::LENGTH_RESULTS; i1++)
-    if (results==NULL)
-      stream << RESULT_COLUMNS::RESULT_COLUMN_TEXT[i1] << DELIMITER;
-    else
-      stream << results[i1] << DELIMITER;
-  stream << endl;
-  }
-//------------------------------------------------------------------------------
 
