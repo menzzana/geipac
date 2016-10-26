@@ -33,7 +33,7 @@ Geipac has only been tested with the above mentioned versions, but may function 
 In order to build just run::
 
   cd [binary dir]
-  cmake [binary dir]/CMakeLists.txt -DEIGEN3_INCLUDE_DIR="<Eigen3 include directory>"
+  cmake [binary dir]/CMakeLists.txt -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>"
   make
 
 USAGE
@@ -66,8 +66,7 @@ OPTIONS
   no analysis will be performed on that
   marker. Default: 5
 :-d,--model <type>: The model type to use (i.e. "dom" for
-  dominant-dominant or rec for
-  "recessive".
+  dominant or "rec" for recessive.
 :-h,--help: Displays this help text.
 :-i,--ifile <file>: Specifies the input interaction
   variable file. Default: null
@@ -89,12 +88,22 @@ OPTIONS
   automatically)
 :-p,--permutations <count>: Specifies the number of case/control
   permutations to perform. Default: 0
-:-e,--permutationoutput <R=raw permutation output, T=total permutation output>:
+  The permutation result fill will contain the p-value of each printed parameter.
+  For APP and MULT the minimum p-value obtained whereas for other parameters
+  the ratio of permuted values that are lower than the original value.
+  The logistic regression stability is expressed as the ratio of logistic regression
+  analysis resolved before reaching max iterations.
+:-w,--rawpermutation:
   Sets if permutation rawdata should be
-  printed to various files (Default: No)
+  printed to result file (Default: No)
   With Total permutation output, the first
   row shows the original data, whereas
   the other rows are the permutated data
+:-e,--totalpermutation:
+  Sets if permutation total data should be
+  printed to a separate file (Default: No)
+  With Total permutation output, the APP and
+  MULT for each permutation will be printed separately
 :-s,--seed <value>: Specifies the seed used by the PRNG.
   Default: 123456789.
 

@@ -11,7 +11,8 @@ Analysis::Analysis() {
   param.permutations=0;
   param.cutoff=CUTOFF;
   param.model=NO_MODEL;
-  param.permutation_output=PERMUTATION_TOTALDATA;
+  param.rawpermutation=false;
+  param.totalpermutation=false;
   markerid=NULL;
   imarkerid=NULL;
   individualid=NULL;
@@ -74,6 +75,8 @@ void Analysis::initialize() {
     memcpy(permphenotype,phenotype,nindividualid*sizeof(int));
     permuted_mult=new double[param.permutations];
     permuted_app=new double[param.permutations];
+    fill_n(permuted_mult,param.permutations+1,MAX_P_VALUE);
+    fill_n(permuted_app,param.permutations+1,MAX_P_VALUE);
     }
   covdata1=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV1+ncovariate);
   covdata2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
@@ -85,11 +88,8 @@ void Analysis::initialize() {
   }
 //------------------------------------------------------------------------------
 void Analysis::reset() {
-  if (param.permutations>0) {
+  if (param.permutations>0)
     memcpy(phenotype,permphenotype,nindividualid*sizeof(int));
-    fill_n(permuted_mult,param.permutations,MAX_P_VALUE);
-    fill_n(permuted_app,param.permutations,MAX_P_VALUE);
-    }
   CALC::sran1(param.randomseed);
   }
 //------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ void Analysis::run(int interactivemarkeridx) {
       results_text[RESULT_COLUMNS::SNP]=markerid[markeridx];
       results_text[RESULT_COLUMNS::PERM]=permidx==0?STATUS_TEXT::NO_PERMUTATION:global::to_string(permidx);
       analyzeData(markeridx,results_text,results_value);
-      if (permidx==0 || param.permutation_output==PERMUTATION_RAWDATA) {
+      if (permidx==0 || param.rawpermutation) {
         printResults(*param.wres,results_text,RESULT_COLUMNS::LENGTH_TEXT);
         printResults(*param.wres,results_value,RESULT_COLUMNS::LENGTH_VALUES);
         *param.wres<<endl;
@@ -125,9 +125,11 @@ void Analysis::run(int interactivemarkeridx) {
 	fill_n(npermuted,RESULT_COLUMNS::LENGTH_VALUES,0);
 	memcpy(original_value,results_value,RESULT_COLUMNS::LENGTH_VALUES*sizeof(double));
 	perm_value[RESULT_COLUMNS::APP]=MAX_P_VALUE;
-	if (!param.appnegative && results_value[RESULT_COLUMNS::APP]<0)
+	perm_value[RESULT_COLUMNS::MULT]=MAX_P_VALUE;
+	if (param.appnegative || results_value[RESULT_COLUMNS::APP]>0)
 	  perm_value[RESULT_COLUMNS::APP]=results_value[RESULT_COLUMNS::APP];
-	perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
+	if (results_value[RESULT_COLUMNS::MULT]>0)
+	  perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
 	continue;
 	}
       for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
@@ -138,14 +140,19 @@ void Analysis::run(int interactivemarkeridx) {
 	      npermuted[residx]+=results_value[residx];
 	      break;
 	    case RESULT_COLUMNS::APP:
-	      if (param.appnegative || results_value[RESULT_COLUMNS::APP]>=0)
+	      if (param.appnegative || results_value[residx]>0) {
 		perm_value[residx]=min(perm_value[residx],results_value[residx]);
+		permuted_app[permidx]=min(permuted_app[permidx],results_value[residx]);
+		}
 	      break;
 	    case RESULT_COLUMNS::MULT:
-	      perm_value[residx]=min(perm_value[residx],results_value[residx]);
+	      if (results_value[residx]>0) {
+		perm_value[residx]=min(perm_value[residx],results_value[residx]);
+		permuted_mult[permidx]=min(permuted_mult[permidx],results_value[residx]);
+		}
 	      break;
 	    default:
-	      if (results_value[residx]<=original_value[residx])
+	      if (results_value[residx]<=original_value[residx] && results_value[residx]>0)
 		npermuted[residx]++;
 	      break;
 	    }
@@ -158,6 +165,28 @@ void Analysis::run(int interactivemarkeridx) {
       printResults(*param.wperm,perm_value,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
       *param.wperm<<endl;
       }
+    }  
+  if (param.totalpermutation && param.permutations>0) {
+    int napp,nmult;
+    *param.wtotperm<<TOTAL_PERMUTATION;
+    for (int sigidx=0; sigidx<nlimit; sigidx++) {
+      napp=nmult=0;
+      for (int permidx=1; permidx<=param.permutations; permidx++) {
+	if (permuted_app[permidx]<=cutoff_app[sigidx])
+	  napp++;
+	if (permuted_mult[permidx]<=cutoff_mult[sigidx])
+	  nmult++;
+	}
+      if (cutoff_app[sigidx]>0)
+	*param.wtotperm<<DELIMITER<<cutoff_app[sigidx]<<DELIMITER<<(double)napp/(double)param.permutations;
+      else
+	*param.wtotperm<<DELIMITER<<DELIMITER;
+      if (cutoff_mult[sigidx]>0)
+	*param.wtotperm<<DELIMITER<<cutoff_mult[sigidx]<<DELIMITER<<(double)nmult/(double)param.permutations;
+      *param.wtotperm<<endl;
+      }
+    for (int permidx=1; permidx<=param.permutations; permidx++)
+      *param.wtotperm<<permidx<<DELIMITER<<DELIMITER<<permuted_app[permidx]<<DELIMITER<<DELIMITER<<permuted_mult[permidx]<<endl;
     }
   }
 //------------------------------------------------------------------------------

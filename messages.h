@@ -17,7 +17,8 @@ namespace CMDOPTIONS {
   const char *const MARKER_OPTION[]={"markerfile,m","markerfile","Specifies a file containing interaction markers targeted for analysis.\n"};
   const char *const OUTPUT_OPTION[]={"outputdir,o","outputdir","Specifies the directory where the output files will be stored. Default: None (Creates a result directory automatically)\n"};
   const char *const PERMUTATION_OPTION[]={"permutations,p","permutations","Specifies the number of case/control permutations to perform. Default: 0\n"};
-  const char *const PERMUTATIONOUTPUT_OPTION[]={"permutationoutput,e","permutationoutput","Sets if permutation rawdata should be printed to various files [R/T]\n"};
+  const char *const TOTALPERMUTATION_OPTION[]={"totalpermutation,e","totalpermutation","Sets if permutation total data should be printed to a separate file (Default: No)\n"};
+  const char *const RAWPERMUTATION_OPTION[]={"rawpermutation,w","rawpermutation","Sets if permutation rawdata should be printed to result file\n"};
   const char *const SEED_OPTION[]={"seed,s","seed","Specifies the random seed used by the analysis [Default: 123456789]\n"};
   }
 //------------------------------------------------------------------------------

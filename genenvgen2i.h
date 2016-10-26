@@ -18,7 +18,6 @@ namespace GenEnvGen2I {
 
   enum PROPORTION_TYPE { NO_PROPORTION, PROPORTION_DISEASE, PROPORTION_EFFECT, PROPORTION_CORRECTED };
   enum MODEL_TYPE { NO_MODEL, DOMINANT, RECESSIVE };
-  enum PERMUTATION_OUTPUT_TYPE { PERMUTATION_RAWDATA, PERMUTATION_TOTALDATA };
   enum PHENOTYPE_TYPE {PHENOTYPE_UNKNOWN, PHENOTYPE_UNAFFECTED,PHENOTYPE_AFFECTED};
   enum GENDER_TYPE {GENDER_UNKNOWN,GENDER_MALE,GENDER_FEMALE};
   enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_POSITION_OFFSET=1,INDEX_NA=0};
@@ -46,18 +45,17 @@ namespace GenEnvGen2I {
   static const char DOM[]="dom";
   static const char REC_TEXT[]="Recessive";
   static const char DOM_TEXT[]="Dominant";
-  static const char RAWDATA='r';
-  static const char TOTALDATA='t';
+  static const char TOTAL_PERMUTATION[]="Total";
 //------------------------------------------------------------------------------
   class Analysis {
     public:
       struct Param {
         long randomseed;
-        char apcalculation,model,permutation_output;
+        char apcalculation,model;
         int cutoff,iterations,permutations;
         double threshold;
-        bool appnegative;
-	ostream *wres,*wperm;
+        bool appnegative,rawpermutation,totalpermutation;
+	ostream *wres,*wperm,*wtotperm;
         } param;
 
       string *markerid,*individualid,*chromosome;
@@ -110,7 +108,7 @@ namespace RESULT_COLUMNS {
     };
 
   static const int LENGTH_TEXT=7;
-
+//------------------------------------------------------------------------------
   const char *const VALUES[]={
     "ORa_double_exposure", "ORa_double_exposure_lower_limit","ORa_double_exposure_higher_limit", "ORa_test_marker",
     "ORa_test_marker_lower_limit", "ORa_test_marker_higher_limit", "ORa_risk_factor", "ORa_risk_factor_lower_limit",
@@ -129,14 +127,26 @@ namespace RESULT_COLUMNS {
     IND10_0, IND10_1, IND11_0, IND11_1, RECODE
     };
 
+  static const int LENGTH_VALUES=38;    
+//------------------------------------------------------------------------------
   bool const PERMUTED_VALUE[] {
     true, true, true, true, true, true, true, true, true, true, false, false,
     true, true, true, false, false, false, false, false, false, false, false, false,
     true, false, false, false, true, false, false, false, false, false, false,
     false, false, false
     };
-
-  static const int LENGTH_VALUES=38;
+//------------------------------------------------------------------------------
+  enum INDEX_TOTAL_PERMUTATIONS {
+    TPERM,TSIGNAPP,TAPP,TSIGNMULT,TMULT
+    };
+    
+  const char *const TOTAL_PERMUTATIONS[]={
+    "Permutation","Significance Limit", "APP_permutation_pvalue",
+    "Significance Limit", "MULT_permutation_pvalue"
+    };
+  
+  static const int LENGTH_TOTAL=5;
+//------------------------------------------------------------------------------
   }
 //------------------------------------------------------------------------------
 #endif // GENENVGEN2I_H

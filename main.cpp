@@ -35,15 +35,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace prgm_opt=boost::program_options;
 //------------------------------------------------------------------------------
 GenEnvGen2I::Analysis myanalysis;
+ofstream fpresult,fppermutation,fptotalpermutation;
 //------------------------------------------------------------------------------
 void CleanUp(bool exitvalue) {
+  fpresult.close();
+  fppermutation.close();
+  fptotalpermutation.close();
   exit(exitvalue);
   }
 //------------------------------------------------------------------------------
 int main(int argc, char **argv) {
   prgm_opt::variables_map option_map;
   prgm_opt::options_description options("Options");
-  ofstream fpresult,fppermutation;
   IMarkerData *imarker;
   IVariableData *ivariable;
   LimitData *limit;
@@ -82,8 +85,9 @@ int main(int argc, char **argv) {
       (CMDOPTIONS::THRESHOLD_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::THRESHOLD_OPTION[2])
       (CMDOPTIONS::MARKER_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::MARKER_OPTION[2])
       (CMDOPTIONS::OUTPUT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::OUTPUT_OPTION[2])
+      (CMDOPTIONS::RAWPERMUTATION_OPTION[0],CMDOPTIONS::RAWPERMUTATION_OPTION[2])
       (CMDOPTIONS::PERMUTATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::PERMUTATION_OPTION[2])
-      (CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[0],prgm_opt::value<char>()->required(),CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[2])
+      (CMDOPTIONS::TOTALPERMUTATION_OPTION[0],CMDOPTIONS::TOTALPERMUTATION_OPTION[2])
       (CMDOPTIONS::SEED_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::SEED_OPTION[2]);
     if (mpirank==global::MPIROOT) {
       prgm_opt::store(prgm_opt::parse_command_line(argc,argv,options),option_map);
@@ -109,11 +113,10 @@ int main(int argc, char **argv) {
         myanalysis.param.model=s1.compare(GenEnvGen2I::DOM)==0?GenEnvGen2I::DOMINANT:
           myanalysis.param.model=s1.compare(GenEnvGen2I::REC)==0?GenEnvGen2I::RECESSIVE:0;
         }
-      if (option_map.count(CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[1])) {	
-        char c1=tolower(option_map[CMDOPTIONS::PERMUTATIONOUTPUT_OPTION[1]].as<char>());
-        myanalysis.param.permutation_output=(c1==GenEnvGen2I::RAWDATA?GenEnvGen2I::PERMUTATION_RAWDATA:
-          c1==GenEnvGen2I::TOTALDATA?GenEnvGen2I::PERMUTATION_TOTALDATA:0);
-        }
+      if (option_map.count(CMDOPTIONS::RAWPERMUTATION_OPTION[1]))
+	myanalysis.param.rawpermutation=true;
+      if (option_map.count(CMDOPTIONS::TOTALPERMUTATION_OPTION[1]))
+	myanalysis.param.totalpermutation=true;          
       if (option_map.count(CMDOPTIONS::AP_OPTION[1])) {
         char c1=tolower(option_map[CMDOPTIONS::AP_OPTION[1]].as<char>());
         myanalysis.param.apcalculation=(c1==GenEnvGen2I::DISEASE?GenEnvGen2I::PROPORTION_DISEASE:
@@ -218,13 +221,17 @@ int main(int argc, char **argv) {
       GenEnvGen2I::Analysis::printResults(*myanalysis.param.wperm,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::PERM);
       GenEnvGen2I::Analysis::printResults(*myanalysis.param.wperm,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE); 
       *myanalysis.param.wperm<<endl;
+      if (myanalysis.param.totalpermutation) {
+	fptotalpermutation.open((outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT).c_str());
+	myanalysis.param.wtotperm=&fptotalpermutation;
+	GenEnvGen2I::Analysis::printResults(*myanalysis.param.wtotperm,RESULT_COLUMNS::TOTAL_PERMUTATIONS,RESULT_COLUMNS::LENGTH_TOTAL); 
+	*myanalysis.param.wtotperm<<endl;
+	}
       }
     for (int imarkeridx=0; imarkeridx<myanalysis.nimarkerid; imarkeridx++) {
       WRITE_VALUE(STATUS_TEXT::IMARKER,myanalysis.markerid[myanalysis.imarkerid[imarkeridx]]);
       myanalysis.run(myanalysis.imarkerid[imarkeridx]);
       }
-    fpresult.close();
-    fppermutation.close();
     CleanUp(EXIT_SUCCESS);
     }
   catch(exception &e) {

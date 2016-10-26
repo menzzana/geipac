@@ -33,12 +33,7 @@ bool LogisticRegression::maximumLikelihoodRegression(int iterations, double mine
     p=x*beta;
     for (int y1=0; y1<x.rows(); y1++) {
       p(y1)=invLogit(p(y1));
-      //p(y1)=exp(p(y1))/(exp(p(y1))+1);
-   
       pnp=invOdds(p(y1));
-      //pnp=p(y1)*(1-p(y1));
-      
-      
       p(y1)=y(y1)-p(y1);
       for (int x1=0; x1<x.cols(); x1++)
         j(x1,y1)=x(y1,x1)*pnp;
