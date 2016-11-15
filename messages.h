@@ -49,9 +49,10 @@ namespace FILE_TEXT {
 //------------------------------------------------------------------------------
 namespace STATUS_TEXT {
   const char IMARKER[]="Analyzing interaction with marker : %s";
-  const char PERMUTATION_START[]="Starting permutation iteration %d";
+  const char PERMUTATION_START[]=".";
   const char NO_PERMUTATION[]="No";
-  const char ORIGINAL_START[]="Starting analysis of original results";
+  const char PERMUTE[]="Calculating phenotype permutations";
+  const char ORIGINAL_START[]="#";
   const char WRITE_PERMUTATION[]="Writing permutation results";
   const char OUTPUT_READY[]="Ready.";
   const char COMPLETED_ITERATION[]="Completed iteration %d of %d";

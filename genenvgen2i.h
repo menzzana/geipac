@@ -46,6 +46,7 @@ namespace GenEnvGen2I {
   static const char REC_TEXT[]="Recessive";
   static const char DOM_TEXT[]="Dominant";
   static const char TOTAL_PERMUTATION[]="Total";
+  static const int ORIGINAL=0;
 //------------------------------------------------------------------------------
   class Analysis {
     public:
@@ -55,13 +56,13 @@ namespace GenEnvGen2I {
         int cutoff,iterations,permutations;
         double threshold;
         bool appnegative,rawpermutation,totalpermutation;
-	ostream *wres,*wperm,*wtotperm;
+        ostream *wres,*wperm,*wtotperm;
         } param;
 
       string *markerid,*individualid,*chromosome;
-      double *cutoff_mult,*cutoff_app,*permuted_mult,*permuted_app,**covdata1,**covdata2;
+      double *cutoff_mult,*cutoff_app,*permuted_mult,*permuted_app,**covariate1,**covariate2;
       int *interaction,*interactionfromfile,*imarkinteraction,**covariate;
-      int *gender,*phenotype,*permphenotype,**genotype,*imarkerid,*riskfactors;
+      int *gender,**phenotype,**genotype,*imarkerid,*riskfactors;
       int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate;
       char *allele1,*allele2;
 
@@ -69,29 +70,30 @@ namespace GenEnvGen2I {
       ~Analysis();
       void setInteraction(int interactivemarkeridx);
       void initialize();
-      void reset();
+      void createCovariateMatrix();
+      void permutePhenotypes();
       void run(int interactivemarkeridx);
-      void analyzeData(int markeridx, string *results_text, double *results_value);
-      void alleleSummaryCount(int *alleles,int markeridx);
-      bool validIndividualData(int individualidx,int markeridx);
-      bool validGeneticData(int individualidx,int markeridx);
-      char calculateRiskAllele(int markeridx, string *results);
-      void calculateRiskFactors(int markeridx,char riskallele,int recode);
+      void analyzeData(int markeridx, int *phenotypex,string *results_text, double *results_value);
+      void alleleSummaryCount(int *alleles,int markeridx,int * phenotypex);
+      bool validIndividualData(int individualidx,int markeridx,int *phenotypex);
+      bool validGeneticData(int individualidx,int markeridx,int *phenotypex);
+      char calculateRiskAllele(int markeridx, int *phenotypex, string *results);
+      void calculateRiskFactors(int markeridx,int *phenotypex,char riskallele,int recode);
       bool isDominantOrXMale(int individualidx,int markeridx);
-      void calculateRiskMatrix(int *riskmatrix);
+      void calculateRiskMatrix(int *phenotypex,int *riskmatrix);
       bool belowCutOff(int *riskmatrix);
       void setCleanData(int markeridx,int *y, double **x, VectorXd &desty, MatrixXd &destx, int dimx, bool a0b0);
       void swapInteractions();
 //------------------------------------------------------------------------------
       template<typename T> static void printResults(ostream &stream, T *results, int length) {	
         for (int i1=0; i1<length; i1++)
-	  stream << results[i1] << DELIMITER;
+          stream << results[i1] << DELIMITER;
         }
 //------------------------------------------------------------------------------
       template<typename T> static void printResults(ostream &stream, T *results, int length, bool const *print) {	
         for (int i1=0; i1<length; i1++)
-	  if (print[i1])
-	    stream << results[i1] << DELIMITER;
+          if (print[i1])
+            stream << results[i1] << DELIMITER;
         }
 //-----------------------------------------------------------------------------
     };

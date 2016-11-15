@@ -170,7 +170,7 @@ bool BIMData::setInteractionMarkerIndex(IMarkerData *imarker) {
         break;
     imark1->index=idx;
     if (bim1==NULL) {
-      WRITE_VALUE(ERROR_TEXT::MISSING_MARKER,imark1->markerid);
+      WRITELN_VALUE(ERROR_TEXT::MISSING_MARKER,imark1->markerid);
       return false;
       }
     }
@@ -315,7 +315,7 @@ bool IVariableData::areAllIndividualPresent(FAMData *famdata) {
 
   for (ivd1=this,fd1=famdata; ivd1!=NULL && fd1!=NULL; ivd1=ivd1->Next,fd1=fd1->Next)
     if (ivd1->individualid!=fd1->individualid) {
-      WRITE_VALUE(ERROR_TEXT::MISSING_INDIVIDUAL,ivd1->individualid);
+      WRITELN_VALUE(ERROR_TEXT::MISSING_INDIVIDUAL,ivd1->individualid);
       return false;
       }
   return ivd1==NULL && fd1==NULL;

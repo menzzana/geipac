@@ -49,14 +49,14 @@ class Loader {
       return i1;
       }
 //------------------------------------------------------------------------------
-    template<typename T, typename K> T *get(T K::*pmember,int length) {
+    template<typename T, typename K> T *get(T K::*pmember,int length, T *dest1) {
       K *tl1;
       T *dest;
       int i1;
 
       if (length==0)
         return NULL;
-      dest=new T[length];
+      dest=dest1==NULL?new T[length]:dest1;
       for (tl1=(K *)this,i1=0; tl1!=NULL; tl1=tl1->Next,i1++)
         dest[i1]=tl1->*pmember;
       return dest;

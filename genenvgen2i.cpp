@@ -27,13 +27,12 @@ Analysis::Analysis() {
   permuted_app=NULL;
   gender=NULL;
   phenotype=NULL;
-  permphenotype=NULL;
   genotype=NULL;
   allele1=NULL;
   allele2=NULL;
   riskfactors=NULL;
-  covdata1=NULL;
-  covdata2=NULL;
+  covariate1=NULL;
+  covariate2=NULL;
   nimarkerid=0;
   nmarkerid=0;
   nindividualid=0;
@@ -57,40 +56,43 @@ Analysis::~Analysis() {
   delete permuted_mult;
   delete permuted_app;
   delete gender;
-  delete phenotype;
-  delete permphenotype;
+  delete[] phenotype;
   delete[] genotype;
   delete allele1;
   delete allele2;
   delete riskfactors;
-  delete[] covdata1;
-  delete[] covdata2;
+  delete[] covariate1;
+  delete[] covariate2;
   }
 //------------------------------------------------------------------------------
 void Analysis::initialize() {
   riskfactors=new int[nindividualid];
   interaction=new int[nindividualid];
+  phenotype=global::make2DArray<int>(param.permutations+1,nindividualid);
   if (param.permutations>0) {
-    permphenotype=new int[nindividualid];
-    memcpy(permphenotype,phenotype,nindividualid*sizeof(int));
-    permuted_mult=new double[param.permutations];
-    permuted_app=new double[param.permutations];
+    permuted_mult=new double[param.permutations+1];
+    permuted_app=new double[param.permutations+1];
     fill_n(permuted_mult,param.permutations+1,MAX_P_VALUE);
     fill_n(permuted_app,param.permutations+1,MAX_P_VALUE);
     }
-  covdata1=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV1+ncovariate);
-  covdata2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
+  }
+//------------------------------------------------------------------------------
+void Analysis::createCovariateMatrix() {
+  covariate1=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV1+ncovariate);
+  covariate2=global::make2DArray<double>(nindividualid,MATRIX_INDEX_COV2+ncovariate);
   for (int y1=0; y1<nindividualid; y1++)
     for (int x1=0; x1<ncovariate; x1++) {
-      covdata1[y1][MATRIX_INDEX_COV1+x1]=covariate[y1][x1];
-      covdata2[y1][MATRIX_INDEX_COV2+x1]=covariate[y1][x1];
+      covariate1[y1][MATRIX_INDEX_COV1+x1]=covariate[y1][x1];
+      covariate2[y1][MATRIX_INDEX_COV2+x1]=covariate[y1][x1];
       }
   }
 //------------------------------------------------------------------------------
-void Analysis::reset() {
-  if (param.permutations>0)
-    memcpy(phenotype,permphenotype,nindividualid*sizeof(int));
+void Analysis::permutePhenotypes() {
   CALC::sran1(param.randomseed);
+  for (int permidx=1; permidx<=param.permutations; permidx++) {
+    memcpy(phenotype[permidx],phenotype[permidx-1],nindividualid*sizeof(int));
+    CALC::randomShuffle(phenotype[permidx],nindividualid);
+    }
   }
 //------------------------------------------------------------------------------
 void Analysis::run(int interactivemarkeridx) {
@@ -101,61 +103,58 @@ void Analysis::run(int interactivemarkeridx) {
   
   setInteraction(interactivemarkeridx);
   for (int markeridx=0; markeridx<nmarkerid; markeridx++) {
-    reset();
     for (int permidx=0; permidx<=param.permutations; permidx++) {
       if (permidx==0)
         WRITE(STATUS_TEXT::ORIGINAL_START);
-      else {
-        WRITE_VALUE(STATUS_TEXT::PERMUTATION_START,permidx);
-	CALC::randomShuffle(phenotype,nindividualid);
-	}
+      else
+        WRITE(STATUS_TEXT::PERMUTATION_START);
       results_text[RESULT_COLUMNS::INTERACTION]=markerid[interactivemarkeridx];
       results_text[RESULT_COLUMNS::CHR]=chromosome[markeridx];
       results_text[RESULT_COLUMNS::SNP]=markerid[markeridx];
       results_text[RESULT_COLUMNS::PERM]=permidx==0?STATUS_TEXT::NO_PERMUTATION:global::to_string(permidx);
-      analyzeData(markeridx,results_text,results_value);
+      analyzeData(markeridx,phenotype[permidx],results_text,results_value);      
       if (permidx==0 || param.rawpermutation) {
         printResults(*param.wres,results_text,RESULT_COLUMNS::LENGTH_TEXT);
         printResults(*param.wres,results_value,RESULT_COLUMNS::LENGTH_VALUES);
         *param.wres<<endl;
         }
       if (param.permutations==0)
-	continue;
+        continue;
       if (permidx==0) {
-	fill_n(npermuted,RESULT_COLUMNS::LENGTH_VALUES,0);
-	memcpy(original_value,results_value,RESULT_COLUMNS::LENGTH_VALUES*sizeof(double));
-	perm_value[RESULT_COLUMNS::APP]=MAX_P_VALUE;
-	perm_value[RESULT_COLUMNS::MULT]=MAX_P_VALUE;
-	if (param.appnegative || results_value[RESULT_COLUMNS::APP]>0)
-	  perm_value[RESULT_COLUMNS::APP]=results_value[RESULT_COLUMNS::APP];
-	if (results_value[RESULT_COLUMNS::MULT]>0)
-	  perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
-	continue;
-	}
+        fill_n(npermuted,RESULT_COLUMNS::LENGTH_VALUES,0);
+        memcpy(original_value,results_value,RESULT_COLUMNS::LENGTH_VALUES*sizeof(double));
+        perm_value[RESULT_COLUMNS::APP]=MAX_P_VALUE;
+        perm_value[RESULT_COLUMNS::MULT]=MAX_P_VALUE;
+        if (param.appnegative || results_value[RESULT_COLUMNS::APP]>0)
+          perm_value[RESULT_COLUMNS::APP]=results_value[RESULT_COLUMNS::APP];
+        if (results_value[RESULT_COLUMNS::MULT]>0)
+          perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
+        continue;
+        }
       for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
-	if (RESULT_COLUMNS::PERMUTED_VALUE[residx])
-	  switch(residx) {
-	    case RESULT_COLUMNS::STABLELRA:
-	    case RESULT_COLUMNS::STABLELRM:
-	      npermuted[residx]+=results_value[residx];
-	      break;
-	    case RESULT_COLUMNS::APP:
-	      if (param.appnegative || results_value[residx]>0) {
-		perm_value[residx]=min(perm_value[residx],results_value[residx]);
-		permuted_app[permidx]=min(permuted_app[permidx],results_value[residx]);
-		}
-	      break;
-	    case RESULT_COLUMNS::MULT:
-	      if (results_value[residx]>0) {
-		perm_value[residx]=min(perm_value[residx],results_value[residx]);
-		permuted_mult[permidx]=min(permuted_mult[permidx],results_value[residx]);
-		}
-	      break;
-	    default:
-	      if (results_value[residx]<=original_value[residx] && results_value[residx]>0)
-		npermuted[residx]++;
-	      break;
-	    }
+        if (RESULT_COLUMNS::PERMUTED_VALUE[residx])
+          switch(residx) {
+            case RESULT_COLUMNS::STABLELRA:
+            case RESULT_COLUMNS::STABLELRM:
+              npermuted[residx]+=results_value[residx];
+              break;
+            case RESULT_COLUMNS::APP:
+              if (param.appnegative || results_value[residx]>0) {
+                perm_value[residx]=min(perm_value[residx],results_value[residx]);
+                permuted_app[permidx]=min(permuted_app[permidx],results_value[residx]);
+                }
+              break;
+            case RESULT_COLUMNS::MULT:
+              if (results_value[residx]>0) {
+                perm_value[residx]=min(perm_value[residx],results_value[residx]);
+                permuted_mult[permidx]=min(permuted_mult[permidx],results_value[residx]);
+                }
+              break;
+            default:
+              if (results_value[residx]<=original_value[residx] && results_value[residx]>0)
+                npermuted[residx]++;
+              break;
+            }
       }
     if (param.permutations>0) {
       printResults(*param.wperm,results_text,RESULT_COLUMNS::PERM);
@@ -172,17 +171,17 @@ void Analysis::run(int interactivemarkeridx) {
     for (int sigidx=0; sigidx<nlimit; sigidx++) {
       napp=nmult=0;
       for (int permidx=1; permidx<=param.permutations; permidx++) {
-	if (permuted_app[permidx]<=cutoff_app[sigidx])
-	  napp++;
-	if (permuted_mult[permidx]<=cutoff_mult[sigidx])
-	  nmult++;
-	}
+        if (permuted_app[permidx]<=cutoff_app[sigidx])
+          napp++;
+        if (permuted_mult[permidx]<=cutoff_mult[sigidx])
+          nmult++;
+        }
       if (cutoff_app[sigidx]>0)
-	*param.wtotperm<<DELIMITER<<cutoff_app[sigidx]<<DELIMITER<<(double)napp/(double)param.permutations;
+        *param.wtotperm<<DELIMITER<<cutoff_app[sigidx]<<DELIMITER<<(double)napp/(double)param.permutations;
       else
-	*param.wtotperm<<DELIMITER<<DELIMITER;
+        *param.wtotperm<<DELIMITER<<DELIMITER;
       if (cutoff_mult[sigidx]>0)
-	*param.wtotperm<<DELIMITER<<cutoff_mult[sigidx]<<DELIMITER<<(double)nmult/(double)param.permutations;
+        *param.wtotperm<<DELIMITER<<cutoff_mult[sigidx]<<DELIMITER<<(double)nmult/(double)param.permutations;
       *param.wtotperm<<endl;
       }
     for (int permidx=1; permidx<=param.permutations; permidx++)
@@ -190,7 +189,7 @@ void Analysis::run(int interactivemarkeridx) {
     }
   }
 //------------------------------------------------------------------------------
-void Analysis::analyzeData(int markeridx,string *results_text, double *results_value) {
+void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, double *results_value) {
   LogisticRegression logreg;
   bool belowthreshold;
   int recode,riskmatrix[N_RISK_MATRIX];
@@ -200,15 +199,28 @@ void Analysis::analyzeData(int markeridx,string *results_text, double *results_v
   recode=0;
   memcpy(interaction,imarkinteraction,nindividualid*sizeof(int));
   fill_n(results_value,RESULT_COLUMNS::LENGTH_VALUES,0);
-  riskallele=calculateRiskAllele(markeridx,results_text);
+  riskallele=calculateRiskAllele(markeridx,phenotypex,results_text);
   results_text[RESULT_COLUMNS::RISK]=riskallele;
-  calculateRiskFactors(markeridx,riskallele,recode);
-  calculateRiskMatrix(riskmatrix);
-  setCleanData(markeridx,phenotype,covdata2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
+  calculateRiskFactors(markeridx,phenotypex,riskallele,recode);
+  calculateRiskMatrix(phenotypex,riskmatrix);
+  setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
   belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
+
+  cout<<"LR ->"<<markerid[markeridx]<<" ->";
+  for (int i1=0; i1<logreg.beta.rows(); i1++)
+    cout<<logreg.beta(i1)<<"; ";
+  cout<<endl;
+
   if (!belowCutOff(riskmatrix)) {
-    setCleanData(markeridx,phenotype,covdata1,logreg.y,logreg.x,MATRIX_INDEX_COV1+ncovariate,true);
+    setCleanData(markeridx,phenotypex,covariate1,logreg.y,logreg.x,MATRIX_INDEX_COV1+ncovariate,true);
     belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
+
+    cout<<"LR1 ->"<<markerid[markeridx]<<" ->";
+    for (int i1=0; i1<logreg.beta.rows(); i1++)
+      cout<<logreg.beta(i1)<<"; ";
+    cout<<endl;
+
+
     results_value[RESULT_COLUMNS::STABLELRM]=belowthreshold?1:0;
     results_value[RESULT_COLUMNS::MULT]=cdf(chi2,pow(logreg.z(LR_INDEX_A1mB1m),2));
     results_value[RESULT_COLUMNS::ORMIO]=logreg.oddsratio(LR_INDEX_A1m);
@@ -247,8 +259,8 @@ void Analysis::analyzeData(int markeridx,string *results_text, double *results_v
     swapInteractions();
     }
   if (recode>0) {
-    calculateRiskFactors(markeridx,riskallele,recode);
-    calculateRiskMatrix(riskmatrix);
+    calculateRiskFactors(markeridx,phenotypex,riskallele,recode);
+    calculateRiskMatrix(phenotypex,riskmatrix);
     }
   results_value[RESULT_COLUMNS::IND00_0]=riskmatrix[RESULT_COLUMNS::IND00_0-RESULT_COLUMNS::IND00_0];
   results_value[RESULT_COLUMNS::IND00_1]=riskmatrix[RESULT_COLUMNS::IND00_1-RESULT_COLUMNS::IND00_0];
@@ -260,8 +272,14 @@ void Analysis::analyzeData(int markeridx,string *results_text, double *results_v
   results_value[RESULT_COLUMNS::IND11_1]=riskmatrix[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0];
   results_value[RESULT_COLUMNS::RECODE]=recode;
   if (!belowCutOff(riskmatrix)) {
-    setCleanData(markeridx,phenotype,covdata2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
+    setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
     belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
+
+    cout<<"LR2 ->"<<markerid[markeridx]<<" ->";
+    for (int i1=0; i1<logreg.beta.rows(); i1++)
+      cout<<logreg.beta(i1)<<"; ";
+    cout<<endl;
+
     results_value[RESULT_COLUMNS::STABLELRA]=belowthreshold?1:0;
     results_value[RESULT_COLUMNS::ORIO]=logreg.oddsratio(LR_INDEX_A1B0);
     results_value[RESULT_COLUMNS::ORIOL]=logreg.lowCI(LR_INDEX_A1B0);
@@ -295,11 +313,11 @@ void Analysis::analyzeData(int markeridx,string *results_text, double *results_v
     }
   }
 //------------------------------------------------------------------------------
-void Analysis::alleleSummaryCount(int *alleles,int markeridx) {
+void Analysis::alleleSummaryCount(int *alleles,int markeridx,int *phenotypex) {
   int offset;
 
   for (int i1=0; i1<nindividualid; i1++) {
-    offset=(phenotype[i1]==PHENOTYPE_AFFECTED?INDEX_CASE_PRIMARY:INDEX_CONTROL_PRIMARY);
+    offset=(phenotypex[i1]==PHENOTYPE_AFFECTED?INDEX_CASE_PRIMARY:INDEX_CONTROL_PRIMARY);
     switch (genotype[i1][markeridx]) {
       case HOMOZYGOTE_PRIMARY:
         alleles[offset]+=2;
@@ -326,13 +344,13 @@ void Analysis::setInteraction(int interactivemarkeridx) {
     }
   if (imarkinteraction==NULL)
     imarkinteraction=new int[nindividualid];
-  alleleSummaryCount(alleles,interactivemarkeridx);
+  alleleSummaryCount(alleles,interactivemarkeridx,phenotype[ORIGINAL]);
   ratioriskalleleprimary=(double)alleles[INDEX_CASE_PRIMARY]/(double)alleles[INDEX_CONTROL_PRIMARY];
   ratioriskallelesecondary=(double)alleles[INDEX_CASE_SECONDARY]/(double)alleles[INDEX_CONTROL_SECONDARY];
   riskhomozygote=(ratioriskalleleprimary>ratioriskallelesecondary?HOMOZYGOTE_PRIMARY:HOMOZYGOTE_SECONDARY);
   for (int i1=0; i1<nindividualid; i1++) {
     imarkinteraction[i1]=NA_INTERACTION;
-    if (!validGeneticData(i1,interactivemarkeridx))
+    if (!validGeneticData(i1,interactivemarkeridx,phenotype[ORIGINAL]))
       continue;
     switch (genotype[i1][interactivemarkeridx]) {
       case HOMOZYGOTE_PRIMARY:
@@ -348,25 +366,25 @@ void Analysis::setInteraction(int interactivemarkeridx) {
     }
   }
 //------------------------------------------------------------------------------
-bool Analysis::validIndividualData(int individualidx,int markeridx) {
+bool Analysis::validIndividualData(int individualidx,int markeridx,int *phenotypex) {
   return (genotype[individualidx][markeridx]!=ZYGOTE_UNKNOWN &&
-          phenotype[individualidx]!=PHENOTYPE_UNKNOWN &&
+          phenotypex[individualidx]!=PHENOTYPE_UNKNOWN &&
           interaction[individualidx]!=NA_INTERACTION);
   }
 //------------------------------------------------------------------------------
-bool Analysis::validGeneticData(int individualidx,int markeridx) {
+bool Analysis::validGeneticData(int individualidx,int markeridx,int *phenotypex) {
   return (genotype[individualidx][markeridx]!=ZYGOTE_UNKNOWN &&
-          phenotype[individualidx]!=PHENOTYPE_UNKNOWN);
+          phenotypex[individualidx]!=PHENOTYPE_UNKNOWN);
   }
 //------------------------------------------------------------------------------
-char Analysis::calculateRiskAllele(int markeridx, string *results) {
+char Analysis::calculateRiskAllele(int markeridx, int *phenotypex, string *results) {
   char controlmaxallele,casemaxallele,caseminallele;
   int controlmax,casemax;
   int primarycount,secondarycount;
   double controlmaxratio,casemaxratio;
   int alleles[]={0,0,0,0};
 
-  alleleSummaryCount(alleles,markeridx);
+  alleleSummaryCount(alleles,markeridx,phenotypex);
   primarycount=alleles[INDEX_CONTROL_PRIMARY]+alleles[INDEX_CASE_PRIMARY];
   secondarycount=alleles[INDEX_CONTROL_SECONDARY]+alleles[INDEX_CASE_SECONDARY];
   if (primarycount>secondarycount) {
@@ -409,14 +427,14 @@ bool Analysis::isDominantOrXMale(int individualidx,int markeridx) {
   return (boost::iequals(chromosome[markeridx],CHROMOSOME_X) && gender[individualidx]==GENDER_MALE);
   }
 //------------------------------------------------------------------------------
-void Analysis::calculateRiskFactors(int markeridx,char riskallele,int recode) {
+void Analysis::calculateRiskFactors(int markeridx,int * phenotypex,char riskallele,int recode) {
   int healthygenotype,riskgenotype;
 
   healthygenotype=riskallele==allele1[markeridx]?HOMOZYGOTE_SECONDARY:HOMOZYGOTE_PRIMARY;
   riskgenotype=riskallele==allele1[markeridx]?HOMOZYGOTE_PRIMARY:HOMOZYGOTE_SECONDARY;
   for (int i1=0; i1<nindividualid; i1++) {
     riskfactors[i1]=NA_RISK;
-    if (!validIndividualData(i1,markeridx))
+    if (!validIndividualData(i1,markeridx,phenotypex))
       continue;
     if (genotype[i1][markeridx]==healthygenotype)
       riskfactors[i1]=NO_RISK;
@@ -429,39 +447,39 @@ void Analysis::calculateRiskFactors(int markeridx,char riskallele,int recode) {
     }
   }
 //------------------------------------------------------------------------------
-void Analysis::calculateRiskMatrix(int *riskmatrix) {
+void Analysis::calculateRiskMatrix(int *phenotypex,int *riskmatrix) {
   int affstatus;
 
   fill_n(riskmatrix,N_RISK_MATRIX,0);
   for (int y1=0; y1<nindividualid; y1++) {
-    fill_n(covdata1[y1],MATRIX_INDEX_COV1,NA_INTERACTION);
-    fill_n(covdata2[y1],MATRIX_INDEX_COV2,NA_INTERACTION);
+    fill_n(covariate1[y1],MATRIX_INDEX_COV1,NA_INTERACTION);
+    fill_n(covariate2[y1],MATRIX_INDEX_COV2,NA_INTERACTION);
     if (riskfactors[y1]==NA_RISK)
       continue;
-    fill_n(covdata1[y1],MATRIX_INDEX_COV1,NO_INTERACTION);
-    fill_n(covdata2[y1],MATRIX_INDEX_COV2,NO_INTERACTION);
-    affstatus=phenotype[y1]-1;
+    fill_n(covariate1[y1],MATRIX_INDEX_COV1,NO_INTERACTION);
+    fill_n(covariate2[y1],MATRIX_INDEX_COV2,NO_INTERACTION);
+    affstatus=phenotypex[y1]-1;
     if (riskfactors[y1]==NO_RISK && interaction[y1]==NO_INTERACTION) {
-      covdata2[y1][MATRIX_INDEX_A0B0]=INTERACTION;
+      covariate2[y1][MATRIX_INDEX_A0B0]=INTERACTION;
       riskmatrix[affstatus]++;
       }
     if (riskfactors[y1]==RISK && interaction[y1]==NO_INTERACTION) {
-      covdata2[y1][MATRIX_INDEX_A1B0]=INTERACTION;
+      covariate2[y1][MATRIX_INDEX_A1B0]=INTERACTION;
       riskmatrix[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
     if (riskfactors[y1]==NO_RISK && interaction[y1]>=INTERACTION) {
-      covdata2[y1][MATRIX_INDEX_A0B1]=INTERACTION;
+      covariate2[y1][MATRIX_INDEX_A0B1]=INTERACTION;
       riskmatrix[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
     if (riskfactors[y1]==RISK && interaction[y1]>=INTERACTION) {
-      covdata2[y1][MATRIX_INDEX_A1B1]=INTERACTION;
+      covariate2[y1][MATRIX_INDEX_A1B1]=INTERACTION;
       riskmatrix[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
     if (riskfactors[y1]==RISK)
-      covdata1[y1][MATRIX_INDEX_A1m]=INTERACTION;
+      covariate1[y1][MATRIX_INDEX_A1m]=INTERACTION;
     if (interaction[y1]>=INTERACTION)
-      covdata1[y1][MATRIX_INDEX_B1m]=INTERACTION;
-    covdata1[y1][MATRIX_INDEX_A1mB1m]=covdata1[y1][MATRIX_INDEX_A1m]*covdata1[y1][MATRIX_INDEX_B1m];
+      covariate1[y1][MATRIX_INDEX_B1m]=INTERACTION;
+    covariate1[y1][MATRIX_INDEX_A1mB1m]=covariate1[y1][MATRIX_INDEX_A1m]*covariate1[y1][MATRIX_INDEX_B1m];
     }
   }
 //------------------------------------------------------------------------------
@@ -478,7 +496,7 @@ void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, M
   desty.resize(nindividualid);
   destx.resize(nindividualid,dimx+1-!a0b0);
   for (int y1=y2=0; y1<nindividualid; y1++) {
-    if (!validIndividualData(y1,markeridx))
+    if (!validIndividualData(y1,markeridx,y))
       continue;
     desty(y2)=y[y1]-1;
     destx(y2,LR_BETA0)=1;

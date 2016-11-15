@@ -45,7 +45,7 @@ OPTIONS
 =======
 
 :-n, --appnegative: Set this flag if negative APP values should
-  be included in total permutation
+  be included in permutation analysis
 :-a, --apcalculation <d/e/c>: Sets how the attributable proportion should be calculated.
   D calculates the proportion of the disease
   E calculates the proportion of the effect
