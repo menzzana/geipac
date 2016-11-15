@@ -205,22 +205,9 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
   calculateRiskMatrix(phenotypex,riskmatrix);
   setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
   belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
-
-  cout<<"LR ->"<<markerid[markeridx]<<" ->";
-  for (int i1=0; i1<logreg.beta.rows(); i1++)
-    cout<<logreg.beta(i1)<<"; ";
-  cout<<endl;
-
   if (!belowCutOff(riskmatrix)) {
     setCleanData(markeridx,phenotypex,covariate1,logreg.y,logreg.x,MATRIX_INDEX_COV1+ncovariate,true);
     belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
-
-    cout<<"LR1 ->"<<markerid[markeridx]<<" ->";
-    for (int i1=0; i1<logreg.beta.rows(); i1++)
-      cout<<logreg.beta(i1)<<"; ";
-    cout<<endl;
-
-
     results_value[RESULT_COLUMNS::STABLELRM]=belowthreshold?1:0;
     results_value[RESULT_COLUMNS::MULT]=cdf(chi2,pow(logreg.z(LR_INDEX_A1mB1m),2));
     results_value[RESULT_COLUMNS::ORMIO]=logreg.oddsratio(LR_INDEX_A1m);
@@ -274,12 +261,6 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
   if (!belowCutOff(riskmatrix)) {
     setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+ncovariate,false);
     belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
-
-    cout<<"LR2 ->"<<markerid[markeridx]<<" ->";
-    for (int i1=0; i1<logreg.beta.rows(); i1++)
-      cout<<logreg.beta(i1)<<"; ";
-    cout<<endl;
-
     results_value[RESULT_COLUMNS::STABLELRA]=belowthreshold?1:0;
     results_value[RESULT_COLUMNS::ORIO]=logreg.oddsratio(LR_INDEX_A1B0);
     results_value[RESULT_COLUMNS::ORIOL]=logreg.lowCI(LR_INDEX_A1B0);
