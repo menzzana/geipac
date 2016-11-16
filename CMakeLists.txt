@@ -35,13 +35,13 @@ else(EIGEN3_INCLUDE_DIR)
   message(FATAL_ERROR "Eigen3 installation has not been found")
 endif(EIGEN3_INCLUDE_DIR)
 
-find_package(MPI)
-if(MPI_FOUND)
-  message(STATUS "Package MPI found.")
-else(MPI_FOUND)
-  message(STATUS "The package MPI was not found.")
-  set(CMAKE_CXX_FLAGS "-DSERIAL")
-endif(MPI_FOUND)
+find_package(OpenMP)
+if (OPENMP_FOUND)
+  message(STATUS "Package OpenMP found.")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+else(OPENMP_FOUND)
+  message(STATUS "The package OpenMP was not found.")
+endif(OPENMP_FOUND)
 
 ###############################################################################
 # Link and include

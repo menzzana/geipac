@@ -209,7 +209,7 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
     setCleanData(markeridx,phenotypex,covariate1,logreg.y,logreg.x,MATRIX_INDEX_COV1+ncovariate,true);
     belowthreshold=logreg.maximumLikelihoodRegression(param.iterations,param.threshold);
     results_value[RESULT_COLUMNS::STABLELRM]=belowthreshold?1:0;
-    results_value[RESULT_COLUMNS::MULT]=cdf(chi2,pow(logreg.z(LR_INDEX_A1mB1m),2));
+    results_value[RESULT_COLUMNS::MULT]=1-cdf(chi2,pow(logreg.z(LR_INDEX_A1mB1m),2));
     results_value[RESULT_COLUMNS::ORMIO]=logreg.oddsratio(LR_INDEX_A1m);
     results_value[RESULT_COLUMNS::ORMIOL]=logreg.lowCI(LR_INDEX_A1m);
     results_value[RESULT_COLUMNS::ORMIOH]=logreg.highCI(LR_INDEX_A1m);
@@ -227,7 +227,7 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
     results_value[RESULT_COLUMNS::APML]=logreg.lowCI(apmvalue,apmerror);
     results_value[RESULT_COLUMNS::APMH]=logreg.highCI(apmvalue,apmerror);
     boost::math::normal normaldist=boost::math::normal(0,apmerror);
-    results_value[RESULT_COLUMNS::APMP]=1-cdf(normaldist,abs(apmvalue))*2;
+    results_value[RESULT_COLUMNS::APMP]=(1-cdf(normaldist,abs(apmvalue)))*2;
     }
   if (logreg.beta(LR_INDEX_A1B0)<0 &&
       logreg.beta(LR_INDEX_A1B0)<logreg.beta(LR_INDEX_A0B1) &&
@@ -290,7 +290,7 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
     results_value[RESULT_COLUMNS::APL]=logreg.lowCI(apvalue,aperror);
     results_value[RESULT_COLUMNS::APH]=logreg.highCI(apvalue,aperror);
     boost::math::normal normaldist=boost::math::normal(0,aperror);
-    results_value[RESULT_COLUMNS::APP]=1-cdf(normaldist,abs(apvalue))*2;
+    results_value[RESULT_COLUMNS::APP]=(1-cdf(normaldist,abs(apvalue)))*2;
     }
   }
 //------------------------------------------------------------------------------

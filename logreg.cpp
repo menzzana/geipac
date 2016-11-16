@@ -95,7 +95,7 @@ double LogisticRegression::APSEM(int idx1,int idx2,int idx3) {
          pow(ha2,2)*variancecovariance(idx2,idx2)+
          pow(ha3,2)*variancecovariance(idx3,idx3)+
          2*ha1*ha2*variancecovariance(idx1,idx2)+
-         2*ha1*ha3*variancecovariance(idx1,idx3)+
-         2*ha2*ha3*variancecovariance(idx2,idx3));
+         2*ha1*ha3*variancecovariance(idx2,idx3)+
+         2*ha2*ha3*variancecovariance(idx1,idx3));
   }
 //------------------------------------------------------------------------------

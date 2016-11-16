@@ -33,7 +33,7 @@ Geipac has only been tested with the above mentioned versions, but may function 
 In order to build just run::
 
   cd [binary dir]
-  cmake [binary dir]/CMakeLists.txt -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>"
+  cmake [source dir]/CMakeLists.txt -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>"
   make
 
 USAGE
@@ -71,7 +71,7 @@ OPTIONS
 :-i,--ifile <file>: Specifies the input interaction
   variable file. Default: null
 :-f,--limitfile <file>: specifies a file containing
-  significance limits for APp and MULT
+  significance limits for APP and MULT
   permutation calculations.
 :-r,--iterations <iterations>: Sets the max number of iteration to
   perform when computing logistic
@@ -96,7 +96,7 @@ OPTIONS
 :-w,--rawpermutation:
   Sets if permutation rawdata should be
   printed to result file (Default: No)
-  With Total permutation output, the first
+  With permutation rawdata output, the first
   row shows the original data, whereas
   the other rows are the permutated data
 :-e,--totalpermutation:
@@ -130,7 +130,8 @@ considered protective.
 UNIQUE FILE FORMAT
 ==================
 
-Beside the standard binary input files, Geisa also contains other files
+Genetic data for this software should be in PLINK Binary file format (.bim/.fam/.bed)
+Beside these files, Geipac also needs other files
 to interact with the data.
 
 INTERACTION VARIABLE FILE
@@ -146,11 +147,11 @@ All other columns will be treated as covariate columns
 
 Example.
 
-INDID ENV COV1  TEST  HELLO
-04D01801	0  1 0 1
+INDID     ENV COV1  HEIGHT  EYE_COLOR
+04D01801	0   1     0       1
  
 First column is Individual ID, and 2nd is Environment.
-COV1, TEST and HELLO are all covariates.
+COV1, HEIGHT and EYE_COLOR are all covariates.
 If no interaction variable file is present, the interaction will be calculated
 from the genotype data.
 
@@ -165,11 +166,34 @@ whereas the Multiplicative_interaction_term_pvalue cutoff column should
 be name CUTOFF_MULT.
 As many cutoff values as wanted can be added.
 
+Example.
+
+CUTOFF_APP CUTOFF_MULT
+0.01       0.05
+           0.001
+
 INTERACTION MARKER FILE
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Should only contain one column with marker names.
 
+PERMUTATIONS
+============
+
+Geipac also outputs the results of the permutations into a marker
+permutation results file.
+This file calculates the ratio of permuted results below the 
+original calculated results in most cases.
+The stability of the logistic regression is calculated as the ratio of
+logstic regressions that did not need to reach the max. number of
+iterations.
+Also, for AP_pvalue and for Multiplicative_interaction_term_pvalue, 
+the minimum p-value obtained during permutations is calculated
+
+The total permutation results does calculate the
+lowest AP_pvalue and Multiplicative_interaction_term_pvalue for each permutation.
+Also, in the same file, the ratio of AP_pvalue and Multiplicative_interaction_term_pvalue
+under a specific value, which is entered in the limit file, is outputted.
 
 COPYRIGHT
 =========
