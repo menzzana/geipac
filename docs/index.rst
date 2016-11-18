@@ -1,8 +1,6 @@
 WHAT IS GEIPAC?
 ==============
 
-This is the file README for the GEIPAC distribution
-
 GEIPAC is a C++ parallel version of GEISA
 GEISA is an update of JEIRA.
 JEIRA is a Java implementation of GEIRA, a gene-environment interaction 
@@ -23,7 +21,7 @@ In order to work, Geipac needs a couple of libraries.
 C++                  Works well with the GNU compiler
 cmake                version 2.8+
 Boost                Version 1.36+ http://www.boost.org/
-MPI                  If not found a serial version of parma will be compiled
+OpenMP               If not found a serial version of parma will be compiled
 Eigen                version 3.2.10 Library for matrix operation which
                      can be found at http://eigen.tuxfamily.org
 ==================== ===============================================================
@@ -145,10 +143,10 @@ Individuals columns should be name INDID.
 Environment variable should be name ENV
 All other columns will be treated as covariate columns
 
-Example.
+Example.::
 
-INDID     ENV COV1  HEIGHT  EYE_COLOR
-04D01801	0   1     0       1
+	INDID     ENV COV1  HEIGHT  EYE_COLOR
+	04D01801	0   1     0       1
  
 First column is Individual ID, and 2nd is Environment.
 COV1, HEIGHT and EYE_COLOR are all covariates.
@@ -166,11 +164,11 @@ whereas the Multiplicative_interaction_term_pvalue cutoff column should
 be name CUTOFF_MULT.
 As many cutoff values as wanted can be added.
 
-Example.
+Example.::
 
-CUTOFF_APP CUTOFF_MULT
-0.01       0.05
-           0.001
+	CUTOFF_APP CUTOFF_MULT
+	0.01       0.05
+						 0.001
 
 INTERACTION MARKER FILE
 ^^^^^^^^^^^^^^^^^^^^^^^

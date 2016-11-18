@@ -47,5 +47,5 @@ endif(OPENMP_FOUND)
 # Link and include
 ###############################################################################
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${MPI_CXX_INCLUDE_PATH} ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} ${Boost_LIBRARIES})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})

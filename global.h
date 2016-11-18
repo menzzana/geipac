@@ -34,10 +34,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/filesystem.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
 
-#ifndef SERIAL
-  #include "mpi.h"
-#endif
-
 #define THROW_ERROR(text) throw runtime_error(global::to_string(text))
 #define THROW_ERROR_VALUE(text,value) throw runtime_error(global::to_string(boost::format(text) % value))
 #define WRITELN(text) clog << text << endl

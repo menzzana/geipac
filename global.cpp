@@ -46,24 +46,4 @@ double CALC::ran1() {
   return temp;
   }
 //---------------------------------------------------------------------------
-double CALC::Chi2(double x, int n) {
-  double p,t;
-  int a,k;
 
-  if (n==0)
-    return 1;
-  p=exp(-0.5*x);
-  if ((n%2)==1)
-    p*=sqrt(2*x/M_PI);
-  for (k=n; k>=2; k-=2)
-    p*=x/(double)k;
-  t=p;
-  a=n;
-  while (t>0.000001*p) {
-    a+=2;
-    t*=x/(double)a;
-    p+=t;
-    }
-  return 1-(p<0?0:p>1?1:p);
-  }
-//---------------------------------------------------------------------------
