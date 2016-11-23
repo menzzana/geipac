@@ -41,8 +41,7 @@ namespace FILE_TEXT {
   const char RESULT[]="/results.txt";
   const char MARKER_PERMUTATION_RESULT[]="/marker_permutation_results.txt";
   const char TOTAL_PERMUTATION_RESULT[]="/total_permutation_results.txt";
-  const char TOTAL_PERMUTATIONS[]="/total_permutations.txt";
-  const char OUTPUT_DIRECTORY[]="/geisa_results_";
+  const char OUTPUT_DIRECTORY[]="/geipac_results_";
   }
 //------------------------------------------------------------------------------
 // Status Messages
@@ -51,7 +50,6 @@ namespace STATUS_TEXT {
   const char IMARKER[]="Analyzing interaction with marker : %s";
   const char PERMUTATION_START[]=".";
   const char NO_PERMUTATION[]="No";
-  const char PERMUTE[]="Calculating phenotype permutations";
   const char ORIGINAL_START[]="#";
   const char WRITE_PERMUTATION[]="Writing permutation results";
   const char OUTPUT_READY[]="Ready.";
@@ -81,6 +79,7 @@ namespace HEADER_TEXT {
   const char THRESHOLD[]=        "LR Threshold:             %f";
   const char APPNEG[]=           "Include APP negative:     %s";
   const char APCALC[]=           "AP Calculation method:    %s";
+  const char PROCESSES[]=        "Processes:                %s";
   }
 //------------------------------------------------------------------------------
 #endif // MESSAGES_H

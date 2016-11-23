@@ -145,8 +145,8 @@ All other columns will be treated as covariate columns
 
 Example.::
 
-	INDID     ENV COV1  HEIGHT  EYE_COLOR
-	04D01801	0   1     0       1
+  INDID     ENV COV1  HEIGHT  EYE_COLOR
+  04D01801  0   1     0       1
  
 First column is Individual ID, and 2nd is Environment.
 COV1, HEIGHT and EYE_COLOR are all covariates.
@@ -166,9 +166,9 @@ As many cutoff values as wanted can be added.
 
 Example.::
 
-	CUTOFF_APP CUTOFF_MULT
-	0.01       0.05
-						 0.001
+  CUTOFF_APP CUTOFF_MULT
+  0.01       0.05
+             0.001
 
 INTERACTION MARKER FILE
 ^^^^^^^^^^^^^^^^^^^^^^^

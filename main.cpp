@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "version_config.h"
 #include "global.h"
 #include "loader.h"
-#include "logreg.h"
+#include "datastore.h"
 #include "genenvgen2i.h"
 #include "boost/program_options.hpp"
 
@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 namespace prgm_opt=boost::program_options;
 //------------------------------------------------------------------------------
-GenEnvGen2I::Analysis myanalysis;
+GenEnvGen2I::DataStore datastore;
 ofstream fpresult,fppermutation,fptotalpermutation;
 //------------------------------------------------------------------------------
 void CleanUp(bool exitvalue) {
@@ -86,29 +86,29 @@ int main(int argc, char **argv) {
       CleanUp(EXIT_SUCCESS);
       }
     if (option_map.count(CMDOPTIONS::SEED_OPTION[1]))
-      myanalysis.param.randomseed=-option_map[CMDOPTIONS::SEED_OPTION[1]].as<double>();
+      datastore.randomseed=-option_map[CMDOPTIONS::SEED_OPTION[1]].as<double>();
     if (option_map.count(CMDOPTIONS::CUTOFF_OPTION[1]))
-      myanalysis.param.cutoff=option_map[CMDOPTIONS::CUTOFF_OPTION[1]].as<int>();
+      datastore.cutoff=option_map[CMDOPTIONS::CUTOFF_OPTION[1]].as<int>();
     if (option_map.count(CMDOPTIONS::ITERATION_OPTION[1]))
-      myanalysis.param.iterations=option_map[CMDOPTIONS::ITERATION_OPTION[1]].as<int>();
+      datastore.iterations=option_map[CMDOPTIONS::ITERATION_OPTION[1]].as<int>();
     if (option_map.count(CMDOPTIONS::THRESHOLD_OPTION[1]))
-      myanalysis.param.threshold=option_map[CMDOPTIONS::THRESHOLD_OPTION[1]].as<double>();
+      datastore.threshold=option_map[CMDOPTIONS::THRESHOLD_OPTION[1]].as<double>();
     if (option_map.count(CMDOPTIONS::PERMUTATION_OPTION[1]))
-      myanalysis.param.permutations=option_map[CMDOPTIONS::PERMUTATION_OPTION[1]].as<int>();
+      datastore.permutations=option_map[CMDOPTIONS::PERMUTATION_OPTION[1]].as<int>();
     if (option_map.count(CMDOPTIONS::APPN_OPTION[1]))
-      myanalysis.param.appnegative=true;
+      datastore.appnegative=true;
     if (option_map.count(CMDOPTIONS::MODEL_OPTION[1])) {
       string s1=boost::algorithm::to_lower_copy(option_map[CMDOPTIONS::MODEL_OPTION[1]].as<string>());
-      myanalysis.param.model=s1.compare(GenEnvGen2I::DOM)==0?GenEnvGen2I::DOMINANT:
-        myanalysis.param.model=s1.compare(GenEnvGen2I::REC)==0?GenEnvGen2I::RECESSIVE:0;
+      datastore.model=s1.compare(GenEnvGen2I::DOM)==0?GenEnvGen2I::DOMINANT:
+        datastore.model=s1.compare(GenEnvGen2I::REC)==0?GenEnvGen2I::RECESSIVE:0;
       }
     if (option_map.count(CMDOPTIONS::RAWPERMUTATION_OPTION[1]))
-      myanalysis.param.rawpermutation=true;
+      datastore.rawpermutation=true;
     if (option_map.count(CMDOPTIONS::TOTALPERMUTATION_OPTION[1]))
-      myanalysis.param.totalpermutation=true;
+      datastore.totalpermutation=true;
     if (option_map.count(CMDOPTIONS::AP_OPTION[1])) {
       char c1=tolower(option_map[CMDOPTIONS::AP_OPTION[1]].as<char>());
-      myanalysis.param.apcalculation=(c1==GenEnvGen2I::DISEASE?GenEnvGen2I::PROPORTION_DISEASE:
+      datastore.apcalculation=(c1==GenEnvGen2I::DISEASE?GenEnvGen2I::PROPORTION_DISEASE:
         c1==GenEnvGen2I::EFFECT?GenEnvGen2I::PROPORTION_EFFECT:
         c1==GenEnvGen2I::CORRECTED?GenEnvGen2I::PROPORTION_CORRECTED:0);
       }
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     // Check received data
     if (plink==NULL)
       THROW_ERROR(ERROR_TEXT::NO_PLINK_FILES);
-    if (myanalysis.param.model==GenEnvGen2I::NO_MODEL)
+    if (datastore.model==GenEnvGen2I::NO_MODEL)
       THROW_ERROR(ERROR_TEXT::NO_MODEL_TYPE);
     if (!plink->bim->setInteractionMarkerIndex(imarker))
       THROW_ERROR(ERROR_TEXT::MISSING_INTERACTION_MARKERS);
@@ -143,10 +143,9 @@ int main(int argc, char **argv) {
       THROW_ERROR(ERROR_TEXT::UNKNOWN_INDIVIDUAL);
     // set output
     outputdir=Loader::setOutputDirectory(outputdir);
-    Loader::deleteResultFile(FILE_TEXT::RESULT);
-    Loader::deleteResultFile(FILE_TEXT::MARKER_PERMUTATION_RESULT);
-    Loader::deleteResultFile(FILE_TEXT::TOTAL_PERMUTATION_RESULT);
-    Loader::deleteResultFile(FILE_TEXT::TOTAL_PERMUTATIONS);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::RESULT);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::MARKER_PERMUTATION_RESULT);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT);
     // Print some information message.
     WRITELN(HEADER_TEXT::RUN);
     WRITELN_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
@@ -155,42 +154,42 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::INTERACTION,(imarker==NULL || ivariable==NULL?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
     WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==NULL?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::OUTPUT,option_map[CMDOPTIONS::OUTPUT_OPTION[1]].as<string>());
-    WRITELN_VALUE(HEADER_TEXT::PERMUTATION,myanalysis.param.permutations);
-    WRITELN_VALUE(HEADER_TEXT::SEED,abs(myanalysis.param.randomseed));
-    WRITELN_VALUE(HEADER_TEXT::MODEL,(myanalysis.param.model==GenEnvGen2I::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
-    WRITELN_VALUE(HEADER_TEXT::CUTOFF,myanalysis.param.cutoff);
-    WRITELN_VALUE(HEADER_TEXT::ITERATIONS,myanalysis.param.iterations);
-    WRITELN_VALUE(HEADER_TEXT::THRESHOLD,myanalysis.param.threshold);
-    WRITELN_VALUE(HEADER_TEXT::APPNEG,(myanalysis.param.appnegative?"Yes":"No"));
-    WRITELN_VALUE(HEADER_TEXT::APCALC,(myanalysis.param.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
-      myanalysis.param.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
+    WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
+    WRITELN_VALUE(HEADER_TEXT::MODEL,(datastore.model==GenEnvGen2I::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::CUTOFF,datastore.cutoff);
+    WRITELN_VALUE(HEADER_TEXT::ITERATIONS,datastore.iterations);
+    WRITELN_VALUE(HEADER_TEXT::THRESHOLD,datastore.threshold);
+    WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
+    WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
+      datastore.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
     // Transfer data to analysis class
-    myanalysis.nindividualid=plink->fam->Length<FAMData>();
-    myanalysis.nlimit=limit->Length<LimitData>();
-    myanalysis.nmarkerid=plink->bim->Length<BIMData>();
-    myanalysis.ncovariate=ivariable->ncovariate;
-    myanalysis.initialize();
+    datastore.nindividualid=plink->fam->Length<FAMData>();
+    datastore.nlimit=limit->Length<LimitData>();
+    datastore.nmarkerid=plink->bim->Length<BIMData>();
+    datastore.ncovariate=ivariable->ncovariate;
+    datastore.initialize();
     if (imarker==NULL) {
-      myanalysis.nimarkerid=myanalysis.nmarkerid;
-      myanalysis.imarkerid=plink->bim->get<int>(&BIMData::index,myanalysis.nmarkerid,NULL);
+      datastore.nimarkerid=datastore.nmarkerid;
+      datastore.imarkerid=plink->bim->get<int>(&BIMData::index,datastore.nmarkerid,NULL);
       }
     else {
-      myanalysis.nimarkerid=imarker->Length<IMarkerData>();
-      myanalysis.imarkerid=imarker->get<int>(&IMarkerData::index,myanalysis.nimarkerid,NULL);
+      datastore.nimarkerid=imarker->Length<IMarkerData>();
+      datastore.imarkerid=imarker->get<int>(&IMarkerData::index,datastore.nimarkerid,NULL);
       }
-    myanalysis.cutoff_app=limit->get<double>(&LimitData::cutoff_app,myanalysis.nlimit,NULL);
-    myanalysis.cutoff_mult=limit->get<double>(&LimitData::cutoff_mult,myanalysis.nlimit,NULL);
-    myanalysis.gender=plink->fam->get<int>(&FAMData::gender,myanalysis.nindividualid,NULL);
-    plink->fam->get<int>(&FAMData::phenotype,myanalysis.nindividualid,myanalysis.phenotype[GenEnvGen2I::ORIGINAL]);
-    myanalysis.individualid=plink->fam->get<string>(&FAMData::individualid,myanalysis.nindividualid,NULL);
-    myanalysis.allele1=plink->bim->get<char>(&BIMData::allele1,myanalysis.nmarkerid,NULL);
-    myanalysis.allele2=plink->bim->get<char>(&BIMData::allele2,myanalysis.nmarkerid,NULL);
-    myanalysis.markerid=plink->bim->get<string>(&BIMData::markerid,myanalysis.nmarkerid,NULL);
-    myanalysis.chromosome=plink->bim->get<string>(&BIMData::chromosome,myanalysis.nmarkerid,NULL);
-    myanalysis.genotype=plink->getGenotypes(myanalysis.nindividualid,myanalysis.nmarkerid);
-    myanalysis.covariate=ivariable->get(&IVariableData::covariate,myanalysis.nindividualid,myanalysis.ncovariate);
+    datastore.cutoff_app=limit->get<double>(&LimitData::cutoff_app,datastore.nlimit,NULL);
+    datastore.cutoff_mult=limit->get<double>(&LimitData::cutoff_mult,datastore.nlimit,NULL);
+    datastore.gender=plink->fam->get<int>(&FAMData::gender,datastore.nindividualid,NULL);
+    plink->fam->get<int>(&FAMData::phenotype,datastore.nindividualid,datastore.phenotype[GenEnvGen2I::ORIGINAL]);
+    datastore.individualid=plink->fam->get<string>(&FAMData::individualid,datastore.nindividualid,NULL);
+    datastore.allele1=plink->bim->get<char>(&BIMData::allele1,datastore.nmarkerid,NULL);
+    datastore.allele2=plink->bim->get<char>(&BIMData::allele2,datastore.nmarkerid,NULL);
+    datastore.markerid=plink->bim->get<string>(&BIMData::markerid,datastore.nmarkerid,NULL);
+    datastore.chromosome=plink->bim->get<string>(&BIMData::chromosome,datastore.nmarkerid,NULL);
+    datastore.genotype=plink->getGenotypes(datastore.nindividualid,datastore.nmarkerid);
+    datastore.covariate=ivariable->get(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate);
     if (ivariable->areInteractionsPresent() && imarker==NULL)
-      myanalysis.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,myanalysis.nindividualid,NULL);
+      datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,NULL);
     delete imarker;
     delete limit;
     delete plink->fam;
@@ -199,34 +198,48 @@ int main(int argc, char **argv) {
     delete ivariable;
     // Output file headers
     fpresult.open((outputdir+FILE_TEXT::RESULT).c_str());
-    myanalysis.param.wres=&fpresult;
-    GenEnvGen2I::Analysis::printResults(*myanalysis.param.wres,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::LENGTH_TEXT);
-    GenEnvGen2I::Analysis::printResults(*myanalysis.param.wres,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES);
-    *myanalysis.param.wres<<endl;
-    if (myanalysis.param.permutations>0) {
+    datastore.wres=&fpresult;
+    GenEnvGen2I::Analysis::printResults(*datastore.wres,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::LENGTH_TEXT);
+    GenEnvGen2I::Analysis::printResults(*datastore.wres,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES);
+    *datastore.wres<<endl;
+    if (datastore.permutations>0) {
       fppermutation.open((outputdir+FILE_TEXT::MARKER_PERMUTATION_RESULT).c_str());
-      myanalysis.param.wperm=&fppermutation;
-      GenEnvGen2I::Analysis::printResults(*myanalysis.param.wperm,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::PERM);
-      GenEnvGen2I::Analysis::printResults(*myanalysis.param.wperm,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE); 
-      *myanalysis.param.wperm<<endl;
-      if (myanalysis.param.totalpermutation) {
+      datastore.wperm=&fppermutation;
+      GenEnvGen2I::Analysis::printResults(*datastore.wperm,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::PERM);
+      GenEnvGen2I::Analysis::printResults(*datastore.wperm,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
+      *datastore.wperm<<endl;
+      if (datastore.totalpermutation) {
         fptotalpermutation.open((outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT).c_str());
-        myanalysis.param.wtotperm=&fptotalpermutation;
-        GenEnvGen2I::Analysis::printResults(*myanalysis.param.wtotperm,RESULT_COLUMNS::TOTAL_PERMUTATIONS,RESULT_COLUMNS::LENGTH_TOTAL);
-        *myanalysis.param.wtotperm<<endl;
+        datastore.wtotperm=&fptotalpermutation;
+        GenEnvGen2I::Analysis::printResults(*datastore.wtotperm,RESULT_COLUMNS::TOTAL_PERMUTATIONS,RESULT_COLUMNS::LENGTH_TOTAL);
+        *datastore.wtotperm<<endl;
         }
       }
     // Analysis
-    myanalysis.createCovariateMatrix();
-    if (myanalysis.param.permutations>0) {
-      WRITELN(STATUS_TEXT::PERMUTE);
-      myanalysis.permutePhenotypes();
+    if (datastore.permutations>0)
+      datastore.permutePhenotypes();
+    #pragma omp parallel
+      {
+      #ifndef SERIAL
+      if (omp_get_thread_num()==0)
+        WRITELN_VALUE(HEADER_TEXT::PROCESSES,omp_get_num_threads());
+      #endif
+      GenEnvGen2I::Analysis *myanalysis;
+      myanalysis=new GenEnvGen2I::Analysis(&datastore);
+      for (int imarkeridx=0; imarkeridx<datastore.nimarkerid; imarkeridx++) {
+      #ifndef SERIAL
+      if (omp_get_thread_num()==0)
+      #endif
+        WRITELN_VALUE(STATUS_TEXT::IMARKER,datastore.markerid[datastore.imarkerid[imarkeridx]]);
+      myanalysis->run(datastore.imarkerid[imarkeridx]);
+      #ifndef SERIAL
+      if (omp_get_thread_num()==0)
+      #endif
+        clog<<endl;
+        }
+      delete myanalysis;
       }
-    for (int imarkeridx=0; imarkeridx<myanalysis.nimarkerid; imarkeridx++) {
-      WRITELN_VALUE(STATUS_TEXT::IMARKER,myanalysis.markerid[myanalysis.imarkerid[imarkeridx]]);
-      myanalysis.run(myanalysis.imarkerid[imarkeridx]);
-      clog<<endl;
-      }
+    GenEnvGen2I::Analysis::printTotalPermutation(datastore);    
     CleanUp(EXIT_SUCCESS);
     }
   catch(exception &e) {

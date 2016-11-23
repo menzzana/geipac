@@ -8,16 +8,13 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
-#include <ctype.h>
 #include "global.h"
+#include "datastore.h"
 #include "logreg.h"
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
-//------------------------------------------------------------------------------
+//==============================================================================
 namespace GenEnvGen2I {
-
-  enum PROPORTION_TYPE { NO_PROPORTION, PROPORTION_DISEASE, PROPORTION_EFFECT, PROPORTION_CORRECTED };
-  enum MODEL_TYPE { NO_MODEL, DOMINANT, RECESSIVE };
   enum PHENOTYPE_TYPE {PHENOTYPE_UNKNOWN, PHENOTYPE_UNAFFECTED,PHENOTYPE_AFFECTED};
   enum GENDER_TYPE {GENDER_UNKNOWN,GENDER_MALE,GENDER_FEMALE};
   enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_POSITION_OFFSET=1,INDEX_NA=0};
@@ -36,43 +33,24 @@ namespace GenEnvGen2I {
   static const char DISEASE_TEXT[]="Disease";
   static const char EFFECT_TEXT[]="Effect";
   static const char CORRECTED_TEXT[]="Corrected";
-  static const double THRESHOLD=1E-3;
-  static const double MAX_P_VALUE=1;
-  static const int ITERATIONS=500;
   static const int N_RISK_MATRIX=8;
-  static const int CUTOFF=10;
   static const char REC[]="rec";
   static const char DOM[]="dom";
   static const char REC_TEXT[]="Recessive";
   static const char DOM_TEXT[]="Dominant";
   static const char TOTAL_PERMUTATION[]="Total";
-  static const int ORIGINAL=0;
 //------------------------------------------------------------------------------
   class Analysis {
     public:
-      struct Param {
-        long randomseed;
-        char apcalculation,model;
-        int cutoff,iterations,permutations;
-        double threshold;
-        bool appnegative,rawpermutation,totalpermutation;
-        ostream *wres,*wperm,*wtotperm;
-        } param;
-
-      string *markerid,*individualid,*chromosome;
-      double *cutoff_mult,*cutoff_app,*permuted_mult,*permuted_app,**covariate1,**covariate2;
-      int *interaction,*interactionfromfile,*imarkinteraction,**covariate;
-      int *gender,**phenotype,**genotype,*imarkerid,*riskfactors;
-      int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate;
-      char *allele1,*allele2;
-
-      Analysis();
+      DataStore *data;
+      double **covariate1,**covariate2;
+      int *interaction,*imarkinteraction,*riskfactors;
+      
+      Analysis(DataStore *datastore);
       ~Analysis();
       void setInteraction(int interactivemarkeridx);
-      void initialize();
-      void createCovariateMatrix();
-      void permutePhenotypes();
       void run(int interactivemarkeridx);
+      static void printTotalPermutation(DataStore &data1);
       void analyzeData(int markeridx, int *phenotypex,string *results_text, double *results_value);
       void alleleSummaryCount(int *alleles,int markeridx,int * phenotypex);
       bool validIndividualData(int individualidx,int markeridx,int *phenotypex);
@@ -98,7 +76,7 @@ namespace GenEnvGen2I {
 //-----------------------------------------------------------------------------
     };
   }
-//------------------------------------------------------------------------------
+//==============================================================================
 namespace RESULT_COLUMNS {
   const char *const TEXT[]={
     "Interaction_marker","Chr_test_marker","Test_marker", "Permutation",
@@ -150,5 +128,5 @@ namespace RESULT_COLUMNS {
   static const int LENGTH_TOTAL=5;
 //------------------------------------------------------------------------------
   }
-//------------------------------------------------------------------------------
+//==============================================================================
 #endif // GENENVGEN2I_H

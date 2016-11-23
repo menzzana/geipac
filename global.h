@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 *******************************************************************************/
-
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
@@ -33,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time/local_time/local_time.hpp>
-
+//------------------------------------------------------------------------------
 #define THROW_ERROR(text) throw runtime_error(global::to_string(text))
 #define THROW_ERROR_VALUE(text,value) throw runtime_error(global::to_string(boost::format(text) % value))
 #define WRITELN(text) clog << text << endl
@@ -41,9 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WRITELN_VALUE(text,value) clog << global::to_string(boost::format(text) % value) << endl
 //------------------------------------------------------------------------------
 using namespace std;
-//------------------------------------------------------------------------------
-// global constants and functions used
-//------------------------------------------------------------------------------
+//==============================================================================
 namespace CALC {
   #define IA 16807
   #define IM 2147483647
@@ -58,14 +55,13 @@ namespace CALC {
 
   void sran1(long rseed);
   double ran1();
-  double Chi2(double x, int n);
 //------------------------------------------------------------------------------
   template<typename T> void randomShuffle(T *array,int maxn) {
     for (int i1=0; i1<maxn; i1++)
       swap(array[i1],array[(int)CALC::ran1()*maxn]);
     }
   }
-//------------------------------------------------------------------------------
+//==============================================================================
 namespace global {
   static const int MPIROOT=0;
 
@@ -88,5 +84,5 @@ namespace global {
 //------------------------------------------------------------------------------
   string getFileName(string pathstring);
   }
-//------------------------------------------------------------------------------
+//==============================================================================
 #endif // GLOBAL_H
