@@ -21,7 +21,7 @@ In order to work, Geipac needs a couple of libraries.
 C++                  Works well with the GNU compiler
 cmake                version 2.8+
 Boost                Version 1.36+ http://www.boost.org/
-OpenMP               If not found a serial version of parma will be compiled
+OpenMP               If not found a serial version will be compiled
 Eigen                version 3.2.10 Library for matrix operation which
                      can be found at http://eigen.tuxfamily.org
 ==================== ===============================================================
