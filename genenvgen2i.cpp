@@ -36,73 +36,73 @@ void Analysis::run(int interactivemarkeridx) {
   #pragma omp for
     for (int markeridx=0; markeridx<data->nmarkerid; markeridx++) {
       for (int permidx=0; permidx<=data->permutations; permidx++) {
-				if (permidx==0)
-					WRITE(STATUS_TEXT::ORIGINAL_START);
-				else
-					WRITE(STATUS_TEXT::PERMUTATION_START);
-				results_text[RESULT_COLUMNS::INTERACTION]=data->markerid[interactivemarkeridx];
-				results_text[RESULT_COLUMNS::CHR]=data->chromosome[markeridx];
-				results_text[RESULT_COLUMNS::SNP]=data->markerid[markeridx];
-				results_text[RESULT_COLUMNS::PERM]=permidx==0?STATUS_TEXT::NO_PERMUTATION:global::to_string(permidx);
-				analyzeData(markeridx,data->phenotype[permidx],results_text,results_value);      
-				if (permidx==0 || data->rawpermutation) {
-					#pragma omp critical
-						{
-						printResults(*data->wres,results_text,RESULT_COLUMNS::LENGTH_TEXT);
-						printResults(*data->wres,results_value,RESULT_COLUMNS::LENGTH_VALUES);
-						*data->wres<<endl;
-						}
-					}
-				if (data->permutations==0)
-					continue;
-				if (permidx==0) {
-					fill_n(npermuted,RESULT_COLUMNS::LENGTH_VALUES,0);
-					memcpy(original_value,results_value,RESULT_COLUMNS::LENGTH_VALUES*sizeof(double));
-					perm_value[RESULT_COLUMNS::APP]=MAX_P_VALUE;
-					perm_value[RESULT_COLUMNS::MULT]=MAX_P_VALUE;
-					if (data->appnegative || results_value[RESULT_COLUMNS::APP]>0)
-						perm_value[RESULT_COLUMNS::APP]=results_value[RESULT_COLUMNS::APP];
-					if (results_value[RESULT_COLUMNS::MULT]>0)
-						perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
-					continue;
-					}
-				for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
-					if (RESULT_COLUMNS::PERMUTED_VALUE[residx])
-						switch(residx) {
-							case RESULT_COLUMNS::STABLELRA:
-							case RESULT_COLUMNS::STABLELRM:
-								npermuted[residx]+=results_value[residx];
-								break;
-							case RESULT_COLUMNS::APP:
-								if (data->appnegative || results_value[residx]>0) {
-									perm_value[residx]=min(perm_value[residx],results_value[residx]);
-									data->permuted_app[permidx]=min(data->permuted_app[permidx],results_value[residx]);
-									}
-								break;
-							case RESULT_COLUMNS::MULT:
-								if (results_value[residx]>0) {
-									perm_value[residx]=min(perm_value[residx],results_value[residx]);
-									data->permuted_mult[permidx]=min(data->permuted_mult[permidx],results_value[residx]);
-									}
-								break;
-							default:
-								if (results_value[residx]<=original_value[residx] && results_value[residx]>0)
-									npermuted[residx]++;
-								break;
-							}
-				}
-			if (data->permutations>0) {
-				for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
-					if (RESULT_COLUMNS::PERMUTED_VALUE[residx] && residx!=RESULT_COLUMNS::APP && residx!=RESULT_COLUMNS::MULT)
-						perm_value[residx]=((double)npermuted[residx])/(double)data->permutations;
-				#pragma omp critical
-					{
-					printResults(*data->wperm,results_text,RESULT_COLUMNS::PERM);
-					printResults(*data->wperm,perm_value,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
-					*data->wperm<<endl;
-					}
-				}
-		}  
+        if (permidx==0)
+          WRITE(STATUS_TEXT::ORIGINAL_START);
+        else
+          WRITE(STATUS_TEXT::PERMUTATION_START);
+        results_text[RESULT_COLUMNS::INTERACTION]=data->markerid[interactivemarkeridx];
+        results_text[RESULT_COLUMNS::CHR]=data->chromosome[markeridx];
+        results_text[RESULT_COLUMNS::SNP]=data->markerid[markeridx];
+        results_text[RESULT_COLUMNS::PERM]=permidx==0?STATUS_TEXT::NO_PERMUTATION:global::to_string(permidx);
+        analyzeData(markeridx,data->phenotype[permidx],results_text,results_value);
+        if (permidx==0 || data->rawpermutation) {
+          #pragma omp critical
+            {
+            printResults(*data->wres,results_text,RESULT_COLUMNS::LENGTH_TEXT);
+            printResults(*data->wres,results_value,RESULT_COLUMNS::LENGTH_VALUES);
+            *data->wres<<endl;
+            }
+          }
+        if (data->permutations==0)
+          continue;
+        if (permidx==0) {
+          fill_n(npermuted,RESULT_COLUMNS::LENGTH_VALUES,0);
+          memcpy(original_value,results_value,RESULT_COLUMNS::LENGTH_VALUES*sizeof(double));
+          perm_value[RESULT_COLUMNS::APP]=MAX_P_VALUE;
+          perm_value[RESULT_COLUMNS::MULT]=MAX_P_VALUE;
+          if (data->appnegative || results_value[RESULT_COLUMNS::APP]>0)
+            perm_value[RESULT_COLUMNS::APP]=results_value[RESULT_COLUMNS::APP];
+          if (results_value[RESULT_COLUMNS::MULT]>0)
+            perm_value[RESULT_COLUMNS::MULT]=results_value[RESULT_COLUMNS::MULT];
+          continue;
+          }
+        for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
+          if (RESULT_COLUMNS::PERMUTED_VALUE[residx])
+            switch(residx) {
+              case RESULT_COLUMNS::STABLELRA:
+              case RESULT_COLUMNS::STABLELRM:
+                npermuted[residx]+=results_value[residx];
+                break;
+              case RESULT_COLUMNS::APP:
+                if (data->appnegative || results_value[residx]>0) {
+                  perm_value[residx]=min(perm_value[residx],results_value[residx]);
+                  data->permuted_app[permidx]=min(data->permuted_app[permidx],results_value[residx]);
+                  }
+                break;
+              case RESULT_COLUMNS::MULT:
+                if (results_value[residx]>0) {
+                  perm_value[residx]=min(perm_value[residx],results_value[residx]);
+                  data->permuted_mult[permidx]=min(data->permuted_mult[permidx],results_value[residx]);
+                  }
+                break;
+              default:
+                if (results_value[residx]<=original_value[residx] && results_value[residx]>0)
+                  npermuted[residx]++;
+                break;
+              }
+        }
+      if (data->permutations>0) {
+        for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
+          if (RESULT_COLUMNS::PERMUTED_VALUE[residx] && residx!=RESULT_COLUMNS::APP && residx!=RESULT_COLUMNS::MULT)
+            perm_value[residx]=((double)npermuted[residx])/(double)data->permutations;
+        #pragma omp critical
+          {
+          printResults(*data->wperm,results_text,RESULT_COLUMNS::PERM);
+          printResults(*data->wperm,perm_value,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
+          *data->wperm<<endl;
+          }
+        }
+    }
   }
 //------------------------------------------------------------------------------
 void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, double *results_value) {

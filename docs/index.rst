@@ -2,10 +2,18 @@ WHAT IS GEIPAC?
 ==============
 
 GEIPAC is a C++ parallel version of GEISA
-GEISA is an update of JEIRA.
-JEIRA is a Java implementation of GEIRA, a gene-environment interaction 
+GEISA is an update of JEIRA (1).
+JEIRA is a Java implementation of GEIRA (2), a gene-environment interaction 
 analysis tool written for R. It adds new capabilities, e.g. permutations
 which was not present in the original implementation.
+
+#. D. Uvehag, “Design and implementation of a computational platform and
+   a parallelized interaction analysis for large scale genomics data in multiple
+   sclerosis,” 2013.
+
+#. B. Ding, H. Källberg, L. Klareskog, L. Padyukov, and L. Alfredsson, “Geira:
+   gene-environment and gene-gene interaction research application,” European
+   Journal of Epidemiology, vol. 26, no. 7, pp. 557–561, 2011.
 
 BUILDING (from source bundle)
 =============================
