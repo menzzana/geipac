@@ -82,6 +82,20 @@ namespace global {
     return dest;
     }
 //------------------------------------------------------------------------------
+  template<typename T> T ***make3DArray(int y,int x,int z) {
+    T ***dest;
+
+    dest=new T**[z];
+    dest[0]=new T*[z*y];
+    dest[0][0]=new T[z*y*x];
+    for (int z1=1; z1<z; z1++) {
+      dest[z1]=&dest[0][z1*y];
+      for (int y1=1; y1<y; y1++)
+        dest[z1][y1]=&dest[0][0][z1*y1*x];
+      }
+    return dest;
+    }
+//------------------------------------------------------------------------------
   string getFileName(string pathstring);
   }
 //==============================================================================

@@ -9,6 +9,7 @@ DataStore::DataStore() {
   threshold=THRESHOLD;
   iterations=ITERATIONS;
   permutations=0;
+  naphenotype=0;
   cutoff=CUTOFF;
   model=NO_MODEL;
   rawpermutation=false;
@@ -25,6 +26,7 @@ DataStore::DataStore() {
   permuted_app=NULL;
   gender=NULL;
   phenotype=NULL;
+  aphenotype=NULL;
   genotype=NULL;
   allele1=NULL;
   allele2=NULL;
@@ -50,12 +52,15 @@ DataStore::~DataStore() {
   delete gender;
   delete[] phenotype;
   delete[] genotype;
+  delete[] aphenotype;
   delete allele1;
   delete allele2;
   }
 //------------------------------------------------------------------------------
 void DataStore::initialize() {
   phenotype=global::make2DArray<int>(permutations+1,nindividualid);
+  if (naphenotype>0)
+    aphenotype=global::make3DArray<int>(permutations+1,nindividualid,naphenotype);
   if (permutations>0) {
     permuted_mult=new double[permutations+1];
     permuted_app=new double[permutations+1];
@@ -69,6 +74,11 @@ void DataStore::permutePhenotypes() {
   for (int permidx=1; permidx<=permutations; permidx++) {
     memcpy(phenotype[permidx],phenotype[permidx-1],nindividualid*sizeof(int));
     CALC::randomShuffle(phenotype[permidx],nindividualid);
+    if (naphenotype==0)
+      continue;
+    memcpy(aphenotype[permidx][0],aphenotype[permidx-1][0],naphenotype*nindividualid*sizeof(int));
+    for (int apidx=0; apidx<naphenotype; apidx++)
+      CALC::randomShuffle(aphenotype[permidx][apidx],nindividualid);
     }
   }
 //------------------------------------------------------------------------------

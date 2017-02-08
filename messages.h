@@ -20,6 +20,7 @@ namespace CMDOPTIONS {
   const char *const TOTALPERMUTATION_OPTION[]={"totalpermutation,e","totalpermutation","Sets if permutation total data should be printed to a separate file (Default: No)\n"};
   const char *const RAWPERMUTATION_OPTION[]={"rawpermutation,w","rawpermutation","Sets if permutation rawdata should be printed to result file\n"};
   const char *const SEED_OPTION[]={"seed,s","seed","Specifies the random seed used by the analysis [Default: 123456789]\n"};
+  const char *const ALT_PHENOTYPE_OPTION[]={"phenotypes,y","phenotypes","Specifies a file for alternate mutiple phenotypes [Default: none]\n"};
   }
 //------------------------------------------------------------------------------
 // Error Messages
@@ -32,6 +33,7 @@ namespace ERROR_TEXT {
   const char UNKNOWN_INDIVIDUAL[]="Interaction variable individual is not present in dataset or missing individuals in interaction variable file";
   const char MISSING_INDIVIDUAL[]="Individual %s not found.";
   const char NO_LIMITS[]="No limit columns could be found in file";
+  const char NO_ALT_PHENOTYPE[]="No Alternate phenotype file could be found";
   const char FILE_NOT_FOUND[]="File was not found: %s";
   const char MISSING_INTERACTION_MARKERS[]="Missing interaction marker(s)";
   const char MISSING_MARKER[]="Marker %s not found.";
@@ -70,6 +72,7 @@ namespace HEADER_TEXT {
   const char FROMGENEDATA[]="From genetic data";
   const char FROMVARFILE[]="From interaction variable file";
   const char LIMIT[]=            "Limit file:               %s";
+  const char ALTPHENOTYPE[]=     "Alternate Phenotype file: %s";
   const char OUTPUT[]=           "Output directory:         %s";
   const char PERMUTATION[]=      "Permutations:             %d";
   const char SEED[]=             "Seed:                     %d";

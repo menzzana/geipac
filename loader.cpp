@@ -309,18 +309,6 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
   return data1;
   }
 //---------------------------------------------------------------------------
-bool IVariableData::areAllIndividualPresent(FAMData *famdata) {
-  FAMData *fd1;
-  IVariableData *ivd1;
-
-  for (ivd1=this,fd1=famdata; ivd1!=NULL && fd1!=NULL; ivd1=ivd1->Next,fd1=fd1->Next)
-    if (ivd1->individualid!=fd1->individualid) {
-      WRITELN_VALUE(ERROR_TEXT::MISSING_INDIVIDUAL,ivd1->individualid);
-      return false;
-      }
-  return ivd1==NULL && fd1==NULL;
-  }
-//---------------------------------------------------------------------------
 bool IVariableData::areInteractionsPresent() {
   IVariableData *ivd1;
 
@@ -328,5 +316,35 @@ bool IVariableData::areInteractionsPresent() {
     if (ivd1->interaction!=ENV_NOVALUE)
       return true;
   return false;
+  }
+//---------------------------------------------------------------------------
+AltPhenotypeData::AltPhenotypeData() {
+  naphenotype=0;
+  aphenotype=NULL;
+  Next=NULL;
+  }
+//---------------------------------------------------------------------------
+AltPhenotypeData::~AltPhenotypeData() {
+  delete aphenotype;
+  delete Next;
+  }
+//---------------------------------------------------------------------------
+AltPhenotypeData *AltPhenotypeData::getSingleRowData(string fstr,...) {
+  static int ncols=-1;
+  AltPhenotypeData *data1;
+  string *splitdata;
+
+  data1=NULL;
+  if (ncols<0)
+    ncols=getColumnSize(fstr);
+  splitdata=splitDataString(fstr,ncols);
+  data1=this->addEntry<AltPhenotypeData>();
+  data1->naphenotype=ncols-PHENOTYPE1;
+  data1->individualid=splitdata[INDIVIDUALID];
+  data1->aphenotype=new int[data1->naphenotype];
+  for (int i1=PHENOTYPE1; i1<data1->naphenotype; i1++)
+    data1->aphenotype[i1=i1-data1->naphenotype]=atoi(splitdata[i1].c_str());
+  delete[] splitdata;
+  return data1;
   }
 //---------------------------------------------------------------------------

@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
   IMarkerData *imarker;
   IVariableData *ivariable;
   LimitData *limit;
+  AltPhenotypeData *aphenotype;
   BEDData *plink;
   string outputdir;
 
@@ -59,6 +60,7 @@ int main(int argc, char **argv) {
     ivariable=NULL;
     limit=NULL;
     plink=NULL;
+    aphenotype=NULL;
     outputdir="";
     // Program options
     prgm_opt::arg="[Value]";
@@ -78,7 +80,8 @@ int main(int argc, char **argv) {
       (CMDOPTIONS::RAWPERMUTATION_OPTION[0],CMDOPTIONS::RAWPERMUTATION_OPTION[2])
       (CMDOPTIONS::PERMUTATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::PERMUTATION_OPTION[2])
       (CMDOPTIONS::TOTALPERMUTATION_OPTION[0],CMDOPTIONS::TOTALPERMUTATION_OPTION[2])
-      (CMDOPTIONS::SEED_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::SEED_OPTION[2]);
+      (CMDOPTIONS::SEED_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::SEED_OPTION[2])
+      (CMDOPTIONS::ALT_PHENOTYPE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::ALT_PHENOTYPE_OPTION[2]);
     prgm_opt::store(prgm_opt::parse_command_line(argc,argv,options),option_map);
     printVersion();
     if (option_map.count(CMDOPTIONS::HELP_OPTION[1])) {
@@ -132,6 +135,11 @@ int main(int argc, char **argv) {
       bim=BIMData::loadFile<BIMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BIM_FILE);
       plink=BEDData::loadBinaryFile(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BED_FILE,fam,bim);
       }
+    if (option_map.count(CMDOPTIONS::ALT_PHENOTYPE_OPTION[1])) {
+      aphenotype=AltPhenotypeData::loadFile<AltPhenotypeData>(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>());
+      if (aphenotype==NULL)
+        THROW_ERROR(ERROR_TEXT::NO_ALT_PHENOTYPE);
+      }      
     // Check received data
     if (plink==NULL)
       THROW_ERROR(ERROR_TEXT::NO_PLINK_FILES);
@@ -139,7 +147,8 @@ int main(int argc, char **argv) {
       THROW_ERROR(ERROR_TEXT::NO_MODEL_TYPE);
     if (!plink->bim->setInteractionMarkerIndex(imarker))
       THROW_ERROR(ERROR_TEXT::MISSING_INTERACTION_MARKERS);
-    if (!ivariable->areAllIndividualPresent(plink->fam))
+    if (!ivariable->areAllIndividualPresent<IVariableData,FAMData>(plink->fam) ||
+        !aphenotype->areAllIndividualPresent<AltPhenotypeData,FAMData>(plink->fam))
       THROW_ERROR(ERROR_TEXT::UNKNOWN_INDIVIDUAL);
     // set output
     outputdir=Loader::setOutputDirectory(outputdir);
@@ -163,11 +172,13 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
     WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
       datastore.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==NULL?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
     // Transfer data to analysis class
     datastore.nindividualid=plink->fam->Length<FAMData>();
     datastore.nlimit=limit->Length<LimitData>();
     datastore.nmarkerid=plink->bim->Length<BIMData>();
     datastore.ncovariate=ivariable->ncovariate;
+    datastore.naphenotype=aphenotype->naphenotype;
     datastore.initialize();
     if (imarker==NULL) {
       datastore.nimarkerid=datastore.nmarkerid;
@@ -187,7 +198,9 @@ int main(int argc, char **argv) {
     datastore.markerid=plink->bim->get<string>(&BIMData::markerid,datastore.nmarkerid,NULL);
     datastore.chromosome=plink->bim->get<string>(&BIMData::chromosome,datastore.nmarkerid,NULL);
     datastore.genotype=plink->getGenotypes(datastore.nindividualid,datastore.nmarkerid);
-    datastore.covariate=ivariable->get(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate);
+    datastore.covariate=ivariable->get<int>(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate,NULL);
+    if (aphenotype!=NULL)
+      aphenotype->get<int>(&AltPhenotypeData::aphenotype,datastore.nindividualid,datastore.naphenotype,datastore.aphenotype[GenEnvGen2I::ORIGINAL]);
     if (ivariable->areInteractionsPresent() && imarker==NULL)
       datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,NULL);
     delete imarker;
@@ -196,6 +209,7 @@ int main(int argc, char **argv) {
     delete plink->bim;
     delete plink;
     delete ivariable;
+    delete aphenotype;
     // Output file headers
     fpresult.open((outputdir+FILE_TEXT::RESULT).c_str());
     datastore.wres=&fpresult;

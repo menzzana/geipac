@@ -24,7 +24,7 @@ namespace GenEnvGen2I {
     public:
       long randomseed;
       char apcalculation,model;
-      int cutoff,iterations,permutations;
+      int cutoff,iterations,permutations,naphenotype;
       int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate;
       double threshold;
       bool appnegative,rawpermutation,totalpermutation;
@@ -32,7 +32,7 @@ namespace GenEnvGen2I {
       
       string *markerid,*individualid,*chromosome;
       int *imarkerid,*gender,*interactionfromfile;
-      int **phenotype,**genotype,**covariate;
+      int **phenotype,**genotype,**covariate,***aphenotype;
       double *cutoff_mult,*cutoff_app,*permuted_mult,*permuted_app;
       char *allele1,*allele2;
     

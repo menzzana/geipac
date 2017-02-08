@@ -62,14 +62,14 @@ class Loader {
       return dest;
       }
 //------------------------------------------------------------------------------
-    template<typename T, typename K> T **get(T *K::*pmember,int rows,int columns) {
+    template<typename T, typename K> T **get(T *K::*pmember,int rows,int columns, T **dest1) {
       K *tl1;
       T **dest;
       int y1,x1;
 
       if (rows==0)
         return NULL;
-      dest=global::make2DArray<T>(rows,columns);
+      dest=dest1==NULL?global::make2DArray<T>(rows,columns):dest1;
       for (tl1=(K *)this,y1=0; tl1!=NULL; tl1=tl1->Next,y1++)
         for (x1=0; x1<columns; x1++)
           dest[y1][x1]=(tl1->*pmember)[x1];
@@ -105,6 +105,20 @@ class Loader {
         }
       }
 //------------------------------------------------------------------------------
+    template<typename T, typename K> bool areAllIndividualPresent(K *famdata) {
+      K *fd1;
+      T *dt1;
+
+      if (this==NULL)
+        return true;
+      for (dt1=(T *)this,fd1=famdata; dt1!=NULL && fd1!=NULL; dt1=dt1->Next,fd1=fd1->Next)
+        if (dt1->individualid!=fd1->individualid) {
+          WRITELN_VALUE(ERROR_TEXT::MISSING_INDIVIDUAL,dt1->individualid);
+          return false;
+          }
+      return dt1==NULL && fd1==NULL;
+      }
+//---------------------------------------------------------------------------
   };
 //------------------------------------------------------------------------------
 class IMarkerData : public Loader {
@@ -199,8 +213,19 @@ class IVariableData : public Loader {
     IVariableData();
     ~IVariableData();
     IVariableData *getSingleRowData(string fstr,...);
-    bool areAllIndividualPresent(FAMData *famdata);
     bool areInteractionsPresent();
+  };
+//------------------------------------------------------------------------------
+class AltPhenotypeData : public Loader {
+  public:
+    enum POSITION {FAMILYID,INDIVIDUALID,PHENOTYPE1};    
+    string individualid;
+    int *aphenotype,naphenotype;
+    AltPhenotypeData *Next;
+    
+    AltPhenotypeData();
+    ~AltPhenotypeData();
+    AltPhenotypeData *getSingleRowData(string fstr,...);  
   };
 //------------------------------------------------------------------------------
 #endif // LOADER_H

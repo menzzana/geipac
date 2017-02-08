@@ -350,7 +350,7 @@ bool Analysis::isDominantOrXMale(int individualidx,int markeridx) {
   return (boost::iequals(data->chromosome[markeridx],CHROMOSOME_X) && data->gender[individualidx]==GENDER_MALE);
   }
 //------------------------------------------------------------------------------
-void Analysis::calculateRiskFactors(int markeridx,int * phenotypex,char riskallele,int recode) {
+void Analysis::calculateRiskFactors(int markeridx,int *phenotypex,char riskallele,int recode) {
   int healthygenotype,riskgenotype;
 
   healthygenotype=riskallele==data->allele1[markeridx]?HOMOZYGOTE_SECONDARY:HOMOZYGOTE_PRIMARY;

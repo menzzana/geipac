@@ -10,14 +10,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=c++11")
 ###############################################################################
 
 set(GEIPAC_VERSION_MAJOR "0")
-set(GEIPAC_VERSION_MINOR "1")
+set(GEIPAC_VERSION_MINOR "2")
 set(GEIPAC_VERSION_PATCH "0")
 configure_file( version_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/version_config.h )
 
 ###############################################################################
 # Check for dependencies
-# if mpi not found parma will be compiled for serial execution
-# Uncomment the find of MPI to compile and run parma serially
+# if mpi not found the code will be compiled for serial execution
+# Uncomment the find of MPI to compile and run serially
 ###############################################################################
 
 find_package(Boost COMPONENTS filesystem system program_options REQUIRED)

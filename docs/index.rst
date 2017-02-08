@@ -112,6 +112,9 @@ OPTIONS
   MULT for each permutation will be printed separately
 :-s,--seed <value>: Specifies the seed used by the PRNG.
   Default: 123456789.
+:-y,--phenotypes <filename>: Specifies a file for alternate mutiple phenotypes.
+  [Default: none]
+
 
 RECODE
 ======
@@ -182,6 +185,18 @@ INTERACTION MARKER FILE
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Should only contain one column with marker names.
+
+ALTERNATIVE MULTIPLE PHENOTYPE FILES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+This file contains multiple phenotypes for the individuals
+in case you would like to have several predictors.
+The file has the same format as described using the plink format and
+can contain as many phenotypes as preferred.
+No header in the file and all entries are separated by TAB
+and the format is as following::
+
+  FAMILYID  INDIVIDUALID  PHENOTYPE1  ...PHENOTYPEN
+
 
 PERMUTATIONS
 ============
