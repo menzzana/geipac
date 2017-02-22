@@ -22,16 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdio.h>
 #include <iostream>
-
-// define your version
-#define VERSION_MAJOR @GEIPAC_VERSION_MAJOR@
-#define VERSION_MINOR @GEIPAC_VERSION_MINOR@
-#define VERSION_PATCH @GEIPAC_VERSION_PATCH@
 //------------------------------------------------------------------------------
 using namespace std;
 
 void printVersion() {
-  clog << "GEIPAC V" << VERSION_MAJOR << "."<< VERSION_MINOR << "."<< VERSION_PATCH << endl;
+  clog << "GEIPAC V@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@-@GIT_HASH@" << endl;
   }
 //------------------------------------------------------------------------------
 #endif // VERSION_CONFIG_H
