@@ -30,7 +30,7 @@ class Loader {
       return NULL;
       }
 //------------------------------------------------------------------------------
-    template<typename T> T *addEntry() {
+    template<typename T> T *push_back() {
       T *tl1,*tl2;
 
       tl2=new T();
@@ -118,7 +118,17 @@ class Loader {
           }
       return dt1==NULL && fd1==NULL;
       }
-//---------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+    template<typename T> void Delete() {
+      T *tl1,*tl2;
+
+      tl1=(T *)this;
+      while (tl1!=NULL) {
+        tl2=tl1;
+        tl1=tl1->Next;
+        delete tl2;
+        }
+      }
   };
 //------------------------------------------------------------------------------
 class IMarkerData : public Loader {
@@ -128,7 +138,6 @@ class IMarkerData : public Loader {
     IMarkerData *Next;
 
     IMarkerData();
-    ~IMarkerData();
     IMarkerData *getSingleRowData(string fstr,IMarkerData *first);
   };
 //------------------------------------------------------------------------------
@@ -141,7 +150,6 @@ class LimitData : public Loader {
     LimitData *Next;
 
     LimitData();
-    ~LimitData();
     LimitData *getSingleRowData(string fstr,...);
   };
 //------------------------------------------------------------------------------
@@ -158,7 +166,6 @@ class FAMData : public Loader {
     FAMData *Next;
 
     FAMData();
-    ~FAMData();
     FAMData *getSingleRowData(string fstr,...);
   };
 //------------------------------------------------------------------------------
@@ -174,7 +181,6 @@ class BIMData : public Loader {
     BIMData *Next;
 
     BIMData();
-    ~BIMData();
     BIMData *getSingleRowData(string fstr,...);
     bool setInteractionMarkerIndex(IMarkerData *imarker);
   };
@@ -194,7 +200,6 @@ class BEDData : public Loader {
     BEDData *Next;
 
     BEDData();
-    ~BEDData();
     static BEDData *loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim);
     int **getGenotypes(int y,int x);
   };

@@ -53,16 +53,12 @@ IMarkerData::IMarkerData() {
   Next=NULL;
   }
 //---------------------------------------------------------------------------
-IMarkerData::~IMarkerData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
   IMarkerData *data1;
 
   if (first->getEntry<IMarkerData>(fstr)!=NULL)
     return NULL;
-  data1=this->addEntry<IMarkerData>();
+  data1=this->push_back<IMarkerData>();
   data1->markerid=boost::algorithm::trim_copy(fstr);
   return data1;
   }
@@ -70,10 +66,6 @@ IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
 LimitData::LimitData() {
   cutoff_app=cutoff_mult=0;
   Next=NULL;
-  }
-//---------------------------------------------------------------------------
-LimitData::~LimitData() {
-  delete Next;
   }
 //---------------------------------------------------------------------------
 LimitData *LimitData::getSingleRowData(string fstr,...) {
@@ -93,7 +85,7 @@ LimitData *LimitData::getSingleRowData(string fstr,...) {
     }
   else
     if (app_col>=0 && mult_col>=0) {
-      data1=this->addEntry<LimitData>();
+      data1=this->push_back<LimitData>();
       data1->cutoff_app=atof(splitdata[app_col].c_str());
       data1->cutoff_mult=atof(splitdata[mult_col].c_str());
       }  
@@ -109,17 +101,13 @@ FAMData::FAMData() {
   Next=NULL;
   }
 //---------------------------------------------------------------------------
-FAMData::~FAMData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 FAMData *FAMData::getSingleRowData(string fstr,...) {
   FAMData *data1;
   string *splitdata;
   static int index1=0;
 
   splitdata=splitDataString(fstr,MAX_COLUMNS);
-  data1=this->addEntry<FAMData>();
+  data1=this->push_back<FAMData>();
   data1->individualid=splitdata[POSITION::INDIVIDUALID];
   data1->gender=atoi(splitdata[POSITION::GENDER].c_str());
   data1->phenotype=atoi(splitdata[POSITION::PHENOTYPE].c_str());
@@ -136,17 +124,13 @@ BIMData::BIMData() {
   Next=NULL;
   }
 //---------------------------------------------------------------------------
-BIMData::~BIMData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 BIMData *BIMData::getSingleRowData(string fstr,...) {
   BIMData *data1;
   string *splitdata;
   static int index1=0;
 
   splitdata=splitDataString(fstr,MAX_COLUMNS);
-  data1=this->addEntry<BIMData>();
+  data1=this->push_back<BIMData>();
   data1->chromosome=splitdata[POSITION::CHROMOSOME];
   data1->markerid=splitdata[POSITION::MARKER];
   data1->allele1=splitdata[POSITION::ALLELE1].c_str()[0];
@@ -184,10 +168,6 @@ BEDData::BEDData() {
   Next=NULL;
   }
 //---------------------------------------------------------------------------
-BEDData::~BEDData() {
-  delete Next;
-  }
-//---------------------------------------------------------------------------
 BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim) {
   char c1,c2;
   bool individual_major;
@@ -223,7 +203,7 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
           if (!individual_major)
             break;
           }
-        data2=data2->addEntry<BEDData>();
+        data2=data2->push_back<BEDData>();
         if (data1==NULL)
           data1=data2;
         data2->fam=fam1;
@@ -267,7 +247,6 @@ IVariableData::IVariableData() {
 //---------------------------------------------------------------------------
 IVariableData::~IVariableData() {
   delete covariate;
-  delete Next;
   }
 //---------------------------------------------------------------------------
 IVariableData *IVariableData::getSingleRowData(string fstr,...) {
@@ -288,7 +267,7 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
       }
     }
   else {
-    data1=this->addEntry<IVariableData>();
+    data1=this->push_back<IVariableData>();
     data1->individualid=splitdata[indid_col];
     if (env_col>=0)
       if (!boost::iequals(splitdata[env_col].c_str(),NA))
@@ -326,7 +305,6 @@ AltPhenotypeData::AltPhenotypeData() {
 //---------------------------------------------------------------------------
 AltPhenotypeData::~AltPhenotypeData() {
   delete aphenotype;
-  delete Next;
   }
 //---------------------------------------------------------------------------
 AltPhenotypeData *AltPhenotypeData::getSingleRowData(string fstr,...) {
@@ -338,7 +316,7 @@ AltPhenotypeData *AltPhenotypeData::getSingleRowData(string fstr,...) {
   if (ncols<0)
     ncols=getColumnSize(fstr);
   splitdata=splitDataString(fstr,ncols);
-  data1=this->addEntry<AltPhenotypeData>();
+  data1=this->push_back<AltPhenotypeData>();
   data1->naphenotype=ncols-PHENOTYPE1;
   data1->individualid=splitdata[INDIVIDUALID];
   data1->aphenotype=new int[data1->naphenotype];

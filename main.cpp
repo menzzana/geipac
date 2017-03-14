@@ -204,14 +204,13 @@ int main(int argc, char **argv) {
       aphenotype->get<int>(&AltPhenotypeData::aphenotype,datastore.nindividualid,datastore.naphenotype,datastore.aphenotype[GenEnvGen2I::ORIGINAL]);
     if (ivariable->areInteractionsPresent() && imarker==NULL)
       datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,NULL);
-    delete imarker;
-    delete limit;
-    delete plink->fam;
-    delete plink->bim;
-    // strange recursive deletion error for plink. Works by manually deleting object by object
-    //delete plink;
-    delete ivariable;
-    delete aphenotype;
+    imarker->Delete<IMarkerData>();
+    limit->Delete<LimitData>();
+    plink->fam->Delete<FAMData>();
+    plink->bim->Delete<BIMData>();
+    plink->Delete<BEDData>();
+    ivariable->Delete<IVariableData>();
+    aphenotype->Delete<AltPhenotypeData>();
     // Output file headers
     fpresult.open((outputdir+FILE_TEXT::RESULT).c_str());
     datastore.wres=&fpresult;
