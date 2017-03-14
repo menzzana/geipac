@@ -35,6 +35,7 @@ DataStore::DataStore() {
   nindividualid=0;
   nlimit=0;
   ncovariate=0;
+  naphenotype=0;
   }
 //------------------------------------------------------------------------------
 DataStore::~DataStore() {

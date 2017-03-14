@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==NULL?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::INTERACTION,(imarker==NULL || ivariable==NULL?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
     WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==NULL?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::OUTPUT,option_map[CMDOPTIONS::OUTPUT_OPTION[1]].as<string>());
+    WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
     WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
     WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
     WRITELN_VALUE(HEADER_TEXT::MODEL,(datastore.model==GenEnvGen2I::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
@@ -178,7 +178,8 @@ int main(int argc, char **argv) {
     datastore.nlimit=limit->Length<LimitData>();
     datastore.nmarkerid=plink->bim->Length<BIMData>();
     datastore.ncovariate=ivariable->ncovariate;
-    datastore.naphenotype=aphenotype->naphenotype;
+    if (aphenotype!=NULL)
+      datastore.naphenotype=aphenotype->naphenotype;
     datastore.initialize();
     if (imarker==NULL) {
       datastore.nimarkerid=datastore.nmarkerid;
@@ -207,7 +208,8 @@ int main(int argc, char **argv) {
     delete limit;
     delete plink->fam;
     delete plink->bim;
-    delete plink;
+    // strange recursive deletion error for plink. Works by manually deleting object by object
+    //delete plink;
     delete ivariable;
     delete aphenotype;
     // Output file headers

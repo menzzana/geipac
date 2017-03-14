@@ -43,7 +43,7 @@ namespace FILE_TEXT {
   const char RESULT[]="/results.txt";
   const char MARKER_PERMUTATION_RESULT[]="/marker_permutation_results.txt";
   const char TOTAL_PERMUTATION_RESULT[]="/total_permutation_results.txt";
-  const char OUTPUT_DIRECTORY[]="/geipac_results_";
+  const char OUTPUT_DIRECTORY[]="geipac_results_";
   }
 //------------------------------------------------------------------------------
 // Status Messages

@@ -4,6 +4,7 @@ aux_source_directory(. SRC_LIST)
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=c++11")
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+
 ###############################################################################
 # Check for dependencies
 # if OpenMP not found the code will be compiled for serial execution
