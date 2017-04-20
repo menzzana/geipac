@@ -138,10 +138,12 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
     results_value[RESULT_COLUMNS::APM]=apmvalue;
     double apmerror;
     apmerror=logreg.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
-    results_value[RESULT_COLUMNS::APML]=logreg.lowCI(apmvalue,apmerror);
-    results_value[RESULT_COLUMNS::APMH]=logreg.highCI(apmvalue,apmerror);
-    boost::math::normal normaldist=boost::math::normal(0,apmerror);
-    results_value[RESULT_COLUMNS::APMP]=(1-cdf(normaldist,abs(apmvalue)))*2;
+    if (apmerror>0) {
+      results_value[RESULT_COLUMNS::APML]=logreg.lowCI(apmvalue,apmerror);
+      results_value[RESULT_COLUMNS::APMH]=logreg.highCI(apmvalue,apmerror);
+      boost::math::normal normaldist=boost::math::normal(0,apmerror);
+      results_value[RESULT_COLUMNS::APMP]=(1-cdf(normaldist,abs(apmvalue)))*2;
+      }
     }
   setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+data->ncovariate,false);
   belowthreshold=logreg.maximumLikelihoodRegression(data->iterations,data->threshold);
@@ -203,10 +205,12 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
     double aperror;
     aperror=logreg.APSEM(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1);
     results_value[RESULT_COLUMNS::AP]=apvalue;
-    results_value[RESULT_COLUMNS::APL]=logreg.lowCI(apvalue,aperror);
-    results_value[RESULT_COLUMNS::APH]=logreg.highCI(apvalue,aperror);
-    boost::math::normal normaldist=boost::math::normal(0,aperror);
-    results_value[RESULT_COLUMNS::APP]=(1-cdf(normaldist,abs(apvalue)))*2;
+    if (aperror>0) {
+      results_value[RESULT_COLUMNS::APL]=logreg.lowCI(apvalue,aperror);
+      results_value[RESULT_COLUMNS::APH]=logreg.highCI(apvalue,aperror);
+      boost::math::normal normaldist=boost::math::normal(0,aperror);
+      results_value[RESULT_COLUMNS::APP]=(1-cdf(normaldist,abs(apvalue)))*2;
+      }
     }  
   }
 //------------------------------------------------------------------------------

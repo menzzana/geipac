@@ -67,7 +67,7 @@ class Loader {
       T **dest;
       int y1,x1;
 
-      if (rows==0)
+      if (rows==0 || columns==0)
         return NULL;
       dest=dest1==NULL?global::make2DArray<T>(rows,columns):dest1;
       for (tl1=(K *)this,y1=0; tl1!=NULL; tl1=tl1->Next,y1++)
@@ -218,7 +218,7 @@ class IVariableData : public Loader {
     IVariableData();
     ~IVariableData();
     IVariableData *getSingleRowData(string fstr,...);
-    bool areInteractionsPresent();
+    bool areInteractionsPresent(int nindividualid);
   };
 //------------------------------------------------------------------------------
 class AltPhenotypeData : public Loader {

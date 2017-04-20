@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
     datastore.nindividualid=plink->fam->Length<FAMData>();
     datastore.nlimit=limit->Length<LimitData>();
     datastore.nmarkerid=plink->bim->Length<BIMData>();
-    datastore.ncovariate=ivariable->ncovariate;
+    datastore.ncovariate=ivariable==NULL?0:ivariable->ncovariate;
     if (aphenotype!=NULL)
       datastore.naphenotype=aphenotype->naphenotype;
     datastore.initialize();
@@ -202,7 +202,7 @@ int main(int argc, char **argv) {
     datastore.covariate=ivariable->get<int>(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate,NULL);
     if (aphenotype!=NULL)
       aphenotype->get<int>(&AltPhenotypeData::aphenotype,datastore.nindividualid,datastore.naphenotype,datastore.aphenotype[GenEnvGen2I::ORIGINAL]);
-    if (ivariable->areInteractionsPresent() && imarker==NULL)
+    if (ivariable->areInteractionsPresent(datastore.nindividualid) && imarker==NULL)
       datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,NULL);
     imarker->Delete<IMarkerData>();
     limit->Delete<LimitData>();

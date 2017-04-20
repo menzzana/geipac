@@ -288,13 +288,14 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
   return data1;
   }
 //---------------------------------------------------------------------------
-bool IVariableData::areInteractionsPresent() {
+bool IVariableData::areInteractionsPresent(int nindividualid) {
   IVariableData *ivd1;
+  int i1;
 
-  for (ivd1=this; ivd1!=NULL; ivd1=ivd1->Next)
+  for (ivd1=this,i1=0; ivd1!=NULL; ivd1=ivd1->Next,i1++)
     if (ivd1->interaction!=ENV_NOVALUE)
-      return true;
-  return false;
+      return false;
+  return i1==nindividualid;
   }
 //---------------------------------------------------------------------------
 AltPhenotypeData::AltPhenotypeData() {
