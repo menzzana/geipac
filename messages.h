@@ -26,7 +26,6 @@ namespace CMDOPTIONS {
 // Error Messages
 //------------------------------------------------------------------------------
 namespace ERROR_TEXT {
-  const char MPI_NOT_FOUND[]="Cannot initiate MPI";
   const char NO_MODEL_TYPE[]="No model type was defined. Must be either DOM or REC";
   const char NO_BED_FILE[]="Provided binary file is not a BED file";
   const char NO_PLINK_FILES[]="Plink files data was not provided";

@@ -218,7 +218,7 @@ class IVariableData : public Loader {
     IVariableData();
     ~IVariableData();
     IVariableData *getSingleRowData(string fstr,...);
-    bool areInteractionsPresent(int nindividualid);
+    bool areInteractionsPresent();
   };
 //------------------------------------------------------------------------------
 class AltPhenotypeData : public Loader {

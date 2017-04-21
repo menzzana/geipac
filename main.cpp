@@ -155,24 +155,6 @@ int main(int argc, char **argv) {
     Loader::deleteResultFile(outputdir+FILE_TEXT::RESULT);
     Loader::deleteResultFile(outputdir+FILE_TEXT::MARKER_PERMUTATION_RESULT);
     Loader::deleteResultFile(outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT);
-    // Print some information message.
-    WRITELN(HEADER_TEXT::RUN);
-    WRITELN_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
-    WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==NULL?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==NULL?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::INTERACTION,(imarker==NULL || ivariable==NULL?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
-    WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==NULL?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
-    WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
-    WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
-    WRITELN_VALUE(HEADER_TEXT::MODEL,(datastore.model==GenEnvGen2I::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
-    WRITELN_VALUE(HEADER_TEXT::CUTOFF,datastore.cutoff);
-    WRITELN_VALUE(HEADER_TEXT::ITERATIONS,datastore.iterations);
-    WRITELN_VALUE(HEADER_TEXT::THRESHOLD,datastore.threshold);
-    WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
-    WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
-      datastore.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
-    WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==NULL?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
     // Transfer data to analysis class
     datastore.nindividualid=plink->fam->Length<FAMData>();
     datastore.nlimit=limit->Length<LimitData>();
@@ -202,8 +184,27 @@ int main(int argc, char **argv) {
     datastore.covariate=ivariable->get<int>(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate,NULL);
     if (aphenotype!=NULL)
       aphenotype->get<int>(&AltPhenotypeData::aphenotype,datastore.nindividualid,datastore.naphenotype,datastore.aphenotype[GenEnvGen2I::ORIGINAL]);
-    if (ivariable->areInteractionsPresent(datastore.nindividualid) && imarker==NULL)
+    if (ivariable->areInteractionsPresent() && imarker==NULL)
       datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,NULL);
+    // Print some information message.
+    WRITELN(HEADER_TEXT::RUN);
+    WRITELN_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
+    WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==NULL?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==NULL?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::INTERACTION,(datastore.interactionfromfile==NULL?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
+    WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==NULL?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
+    WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
+    WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
+    WRITELN_VALUE(HEADER_TEXT::MODEL,(datastore.model==GenEnvGen2I::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::CUTOFF,datastore.cutoff);
+    WRITELN_VALUE(HEADER_TEXT::ITERATIONS,datastore.iterations);
+    WRITELN_VALUE(HEADER_TEXT::THRESHOLD,datastore.threshold);
+    WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
+    WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
+      datastore.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==NULL?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
+    // Delete pointers structures for import of data
     imarker->Delete<IMarkerData>();
     limit->Delete<LimitData>();
     plink->fam->Delete<FAMData>();
