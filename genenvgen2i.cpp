@@ -219,7 +219,6 @@ void Analysis::printTotalPermutation(DataStore &data1) {
 
   if (!data1.totalpermutation || data1.permutations==0)
     return;
-  *data1.wtotperm<<TOTAL_PERMUTATION;
   for (int sigidx=0; sigidx<data1.nlimit; sigidx++) {
     napp=nmult=0;
     for (int permidx=1; permidx<=data1.permutations; permidx++) {
