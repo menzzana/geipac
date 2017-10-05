@@ -78,7 +78,9 @@ OPTIONS
   variable file. Default: null
 :-f,--limitfile <file>: specifies a file containing
   significance limits for APP and MULT
-  permutation calculations.
+  permutation calculations. When adding this
+  option a total permutation file will also
+  be printed.
 :-r,--iterations <iterations>: Sets the max number of iteration to
   perform when computing logistic
   regression (Default: 500)
