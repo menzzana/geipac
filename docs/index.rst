@@ -105,11 +105,6 @@ OPTIONS
   With permutation rawdata output, the first
   row shows the original data, whereas
   the other rows are the permutated data
-:-e,--totalpermutation:
-  Sets if permutation total data should be
-  printed to a separate file (Default: No)
-  With Total permutation output, the APP and
-  MULT for each permutation will be printed separately
 :-s,--seed <value>: Specifies the seed used by the PRNG.
   Default: 123456789.
 :-y,--phenotypes <filename>: Specifies a file for alternate mutiple phenotypes.

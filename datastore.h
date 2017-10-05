@@ -27,7 +27,7 @@ namespace GenEnvGen2I {
       int cutoff,iterations,permutations,naphenotype;
       int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate;
       double threshold;
-      bool appnegative,rawpermutation,totalpermutation;
+      bool appnegative,rawpermutation;
       ostream *wres,*wperm,*wtotperm;
       
       string *markerid,*individualid,*chromosome;
@@ -40,6 +40,7 @@ namespace GenEnvGen2I {
       ~DataStore();
       void initialize();
       void permutePhenotypes();
+      bool totalPermutations();
     };
 //------------------------------------------------------------------------------
   }

@@ -13,7 +13,6 @@ DataStore::DataStore() {
   cutoff=CUTOFF;
   model=NO_MODEL;
   rawpermutation=false;
-  totalpermutation=false;
   markerid=NULL;
   imarkerid=NULL;
   individualid=NULL;
@@ -81,5 +80,9 @@ void DataStore::permutePhenotypes() {
     for (int apidx=0; apidx<naphenotype; apidx++)
       CALC::randomShuffle(aphenotype[permidx][apidx],nindividualid);
     }
+  }
+//------------------------------------------------------------------------------
+bool DataStore::totalPermutations() {
+  return (cutoff_app!=NULL && cutoff_mult!=NULL);
   }
 //------------------------------------------------------------------------------

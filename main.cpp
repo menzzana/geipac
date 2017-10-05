@@ -79,7 +79,6 @@ int main(int argc, char **argv) {
       (CMDOPTIONS::OUTPUT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::OUTPUT_OPTION[2])
       (CMDOPTIONS::RAWPERMUTATION_OPTION[0],CMDOPTIONS::RAWPERMUTATION_OPTION[2])
       (CMDOPTIONS::PERMUTATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::PERMUTATION_OPTION[2])
-      (CMDOPTIONS::TOTALPERMUTATION_OPTION[0],CMDOPTIONS::TOTALPERMUTATION_OPTION[2])
       (CMDOPTIONS::SEED_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::SEED_OPTION[2])
       (CMDOPTIONS::ALT_PHENOTYPE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::ALT_PHENOTYPE_OPTION[2]);
     prgm_opt::store(prgm_opt::parse_command_line(argc,argv,options),option_map);
@@ -107,8 +106,6 @@ int main(int argc, char **argv) {
       }
     if (option_map.count(CMDOPTIONS::RAWPERMUTATION_OPTION[1]))
       datastore.rawpermutation=true;
-    if (option_map.count(CMDOPTIONS::TOTALPERMUTATION_OPTION[1]))
-      datastore.totalpermutation=true;
     if (option_map.count(CMDOPTIONS::AP_OPTION[1])) {
       char c1=tolower(option_map[CMDOPTIONS::AP_OPTION[1]].as<char>());
       datastore.apcalculation=(c1==GenEnvGen2I::DISEASE?GenEnvGen2I::PROPORTION_DISEASE:
@@ -224,7 +221,7 @@ int main(int argc, char **argv) {
       GenEnvGen2I::Analysis::printResults(*datastore.wperm,RESULT_COLUMNS::TEXT,RESULT_COLUMNS::PERM);
       GenEnvGen2I::Analysis::printResults(*datastore.wperm,RESULT_COLUMNS::VALUES,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
       *datastore.wperm<<endl;
-      if (datastore.totalpermutation) {
+      if (datastore.totalPermutations()) {
         fptotalpermutation.open((outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT).c_str());
         datastore.wtotperm=&fptotalpermutation;
         GenEnvGen2I::Analysis::printResults(*datastore.wtotperm,RESULT_COLUMNS::TOTAL_PERMUTATIONS,RESULT_COLUMNS::LENGTH_TOTAL);

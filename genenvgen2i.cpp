@@ -217,7 +217,7 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
 void Analysis::printTotalPermutation(DataStore &data1) {
   int napp,nmult;
 
-  if (!data1.totalpermutation || data1.permutations==0)
+  if (!data1.totalPermutations() || data1.permutations==0)
     return;
   for (int sigidx=0; sigidx<data1.nlimit; sigidx++) {
     napp=nmult=0;
