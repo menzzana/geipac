@@ -14,6 +14,11 @@ which was not present in the original implementation.
 #. B. Ding, H. Källberg, L. Klareskog, L. Padyukov, and L. Alfredsson, “Geira:
    gene-environment and gene-gene interaction research application,” European
    Journal of Epidemiology, vol. 26, no. 7, pp. 557–561, 2011.
+   
+#. Hössjer, O., Kockum, I., Alfredsson, L., et al. (2016). A General Framework
+   for and New Normalization of Attributable Proportion.
+   Epidemiologic Methods, 0(0), pp. -. Retrieved 13 Oct. 2017,
+   from doi:10.1515/em-2015-0028
 
 BUILDING (from source bundle)
 =============================
@@ -57,7 +62,7 @@ OPTIONS
   E calculates the proportion of the effect
   C calculates the corrected attributable proportion
   which takes negative values into consideration
-  according to Hössjer et. al. Biostatistics,2014.
+  according to Hössjer et. al. (3)
   Default: D
 :-b,--basename <basename>: Specifies the base name of the binary
   input files (i.e. the name of the
@@ -111,7 +116,6 @@ OPTIONS
   Default: 123456789.
 :-y,--phenotypes <filename>: Specifies a file for alternate mutiple phenotypes.
   [Default: none]
-
 
 RECODE
 ======
@@ -194,7 +198,6 @@ and the format is as following::
 
   FAMILYID  INDIVIDUALID  PHENOTYPE1  ...PHENOTYPEN
 
-
 PERMUTATIONS
 ============
 
@@ -218,7 +221,6 @@ COPYRIGHT
 
 GEIPAC is written by Henric Zazzi.
 henric@zazzi.se
-
 
 AVAILABILITY
 ============
