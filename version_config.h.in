@@ -1,8 +1,8 @@
 /*******************************************************************************
 GEIPAC
-Copyright (C) 2016  Henric Zazzi <hzazzi@kth.se>
+Copyright (C) 2016  Henric Zazzi <henric@zazzi.se>
 
-This program is free software: you can redistribute it and/or modify
+Geipac is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
