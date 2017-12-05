@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************/
 
 #include "logreg.h"
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 LogisticRegression::~LogisticRegression() {  
   x.resize(0,0);
   variancecovariance.resize(0,0);
@@ -28,7 +28,7 @@ LogisticRegression::~LogisticRegression() {
   beta.resize(0);
   stderr.resize(0);
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 void LogisticRegression::clearArrays() {
   stderr.resize(x.cols());
   z.resize(x.cols());
@@ -37,7 +37,7 @@ void LogisticRegression::clearArrays() {
   beta.setConstant(x.cols(),0);
   variancecovariance.resize(0,0);
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool LogisticRegression::maximumLikelihoodRegression(int iterations, double minerror) {
   MatrixXd j,xt,jacobian;
   VectorXd oldbeta,p,s;
@@ -72,40 +72,40 @@ bool LogisticRegression::maximumLikelihoodRegression(int iterations, double mine
     }
   return iter1<iterations;
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::invLogit(double p) {
   return exp(p)/(exp(p)+1);
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::invOdds(double p) {
   return p*(1-p);
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::lowCI(int idx) {
   return exp(beta(idx)-stderr(idx)*CONF_LEVEL_95);
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::highCI(int idx) {
   return exp(beta(idx)+stderr(idx)*CONF_LEVEL_95);
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::lowCI(double value, double error) {
   return value-error*CONF_LEVEL_95;
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::highCI(double value, double error) {
   return value+error*CONF_LEVEL_95;
   }
-//---------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::calculateAPMValue(int idx1,int idx2,int idx3) {
   return exp(oddsratio(idx3)-oddsratio(idx1)-oddsratio(idx2)+1)/
          max(oddsratio(idx3),oddsratio(idx1)+oddsratio(idx2)-1);
   }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::calculateRERI(int idx1,int idx2,int idx3) {
   return oddsratio(idx3)-oddsratio(idx1)-oddsratio(idx2)+1;
   }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 double LogisticRegression::APSEM(int idx1,int idx2,int idx3) {
   double ha1=-exp(beta(idx1)-beta(idx3));
   double ha2=-exp(beta(idx2)-beta(idx3));
@@ -118,4 +118,4 @@ double LogisticRegression::APSEM(int idx1,int idx2,int idx3) {
          2*ha2*ha3*variancecovariance(idx1,idx3));
   return result<0?0:result;
   }
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------

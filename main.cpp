@@ -66,19 +66,19 @@ int main(int argc, char **argv) {
     prgm_opt::arg="[Value]";
     options.add_options()
       (CMDOPTIONS::HELP_OPTION[0],CMDOPTIONS::HELP_OPTION[2])
-      (CMDOPTIONS::APPN_OPTION[0],CMDOPTIONS::APPN_OPTION[2])
       (CMDOPTIONS::AP_OPTION[0],prgm_opt::value<char>()->required(),CMDOPTIONS::AP_OPTION[2])
       (CMDOPTIONS::BASE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::BASE_OPTION[2])
-      (CMDOPTIONS::CUTOFF_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::CUTOFF_OPTION[2])
       (CMDOPTIONS::MODEL_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::MODEL_OPTION[2])
       (CMDOPTIONS::INTERACTION_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::INTERACTION_OPTION[2])
+      (CMDOPTIONS::OUTPUT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::OUTPUT_OPTION[2])
+      (CMDOPTIONS::PERMUTATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::PERMUTATION_OPTION[2])
       (CMDOPTIONS::LIMIT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::LIMIT_OPTION[2])
+      (CMDOPTIONS::APPN_OPTION[0],CMDOPTIONS::APPN_OPTION[2])
+      (CMDOPTIONS::CUTOFF_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::CUTOFF_OPTION[2])
       (CMDOPTIONS::ITERATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::ITERATION_OPTION[2])
       (CMDOPTIONS::THRESHOLD_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::THRESHOLD_OPTION[2])
       (CMDOPTIONS::MARKER_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::MARKER_OPTION[2])
-      (CMDOPTIONS::OUTPUT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::OUTPUT_OPTION[2])
       (CMDOPTIONS::RAWPERMUTATION_OPTION[0],CMDOPTIONS::RAWPERMUTATION_OPTION[2])
-      (CMDOPTIONS::PERMUTATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::PERMUTATION_OPTION[2])
       (CMDOPTIONS::SEED_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::SEED_OPTION[2])
       (CMDOPTIONS::ALT_PHENOTYPE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::ALT_PHENOTYPE_OPTION[2]);
     prgm_opt::store(prgm_opt::parse_command_line(argc,argv,options),option_map);

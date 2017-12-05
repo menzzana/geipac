@@ -1,5 +1,5 @@
 WHAT IS GEIPAC?
-==============
+===============
 
 GEIPAC is a C++ parallel version of GEISA
 GEISA is an update of JEIRA (1).
@@ -20,8 +20,8 @@ which was not present in the original implementation.
    Epidemiologic Methods, 0(0), pp. -. Retrieved 13 Oct. 2017,
    from doi:10.1515/em-2015-0028
 
-BUILDING (from source bundle)
-=============================
+BUILDING from source
+====================
 
 **READ THIS CAREFULLY: you MUST install the required libraries!**
 
@@ -31,11 +31,11 @@ DEPENDENCIES
 In order to work, Geipac needs a couple of libraries.
 
 ==================== ===============================================================
-C++                  Works well with the GNU compiler
+C++                  version 4.8+
 cmake                version 2.8+
 Boost                Version 1.36+ http://www.boost.org/
 OpenMP               If not found a serial version will be compiled
-Eigen                version 3.2.10 Library for matrix operation which
+Eigen                version 3.2.10+ Library for matrix operation which
                      can be found at http://eigen.tuxfamily.org
 ==================== ===============================================================
 
@@ -55,67 +55,85 @@ geipac [OPTIONS]
 OPTIONS
 =======
 
-:-n, --appnegative: Set this flag if negative APP values should
-  be included in permutation analysis
+:-h,--help: Displays available options.
 :-a, --apcalculation <d/e/c>: Sets how the attributable proportion should be calculated.
-  D calculates the proportion of the disease
-  E calculates the proportion of the effect
-  C calculates the corrected attributable proportion
+
+  *D* calculates the proportion of the disease.
+  
+  *E* calculates the proportion of the effect.
+  
+  *C* calculates the corrected attributable proportion
   which takes negative values into consideration
-  according to Hössjer et. al. (3)
-  Default: D
-:-b,--basename <basename>: Specifies the base name of the binary
+  according to Hössjer et. al. (3).
+  
+  **Default:** D
+:-b,--basename <basename>: Specifies the base name of the plink
   input files (i.e. the name of the
   files without their file extensions:
   .bed, .bim, .fam).
-:-c,--cutoff <n>: Specifies the minimum number of
-  individuals in a group. The
-  individuals are divided into groups
-  (case/controls with and without the
-  environmental factor). If any of these
-  groups have a count below this value,
-  no analysis will be performed on that
-  marker. Default: 5
-:-d,--model <type>: The model type to use (i.e. "dom" for
-  dominant or "rec" for recessive.
-:-h,--help: Displays this help text.
+:-d,--model <type>: The model type to use
+
+  *dom* for dominant
+  
+  *rec* for recessive.
 :-i,--ifile <file>: Specifies the input interaction
-  variable file. Default: null
-:-f,--limitfile <file>: specifies a file containing
-  significance limits for APP and MULT
-  permutation calculations. When adding this
-  option a total permutation file will also
-  be printed.
-:-r,--iterations <iterations>: Sets the max number of iteration to
-  perform when computing logistic
-  regression (Default: 500)
-:-t,--threshold <threshold>: Sets the min stable threshold when
-  computing logistic regression
-  (Default: 10E-3)
-:-m,--markerfile <file>: Specifies a file containing
-  interaction markers targeted for
-  analysis.
+  variable file. If no interaction file is defined, interactions
+  will be calculated from available data.
 :-o,--outputdir <path>: Specifies the directory where the
-  output files will be stored. Default:
-  None (Creates a result directory
-  automatically)
+  output files will be stored. If none is entered a
+  result directory will be created automatically.
+  
+  **Default:** None
 :-p,--permutations <count>: Specifies the number of case/control
-  permutations to perform. Default: 0
+  permutations to perform.
   The permutation result fill will contain the p-value of each printed parameter.
   For APP and MULT the minimum p-value obtained whereas for other parameters
   the ratio of permuted values that are lower than the original value.
   The logistic regression stability is expressed as the ratio of logistic regression
-  analysis resolved before reaching max iterations.
+  analysis below the threshold before reaching max iterations.
+  
+  **Default:** 0
+:-f,--limitfile <file>: specifies a file containing
+  significance limits for APP and MULT
+  permutation calculations. When adding this
+  option the output will also contain a total permutation file.
+:-n, --appnegative: Set this flag if negative APP values should
+  be included in permutation analysis
+:-c,--cutoff <n>: Specifies the minimum number of
+  individuals in a group. The
+  individuals are divided into groups per marker
+  (case/controls with and without the
+  environmental factor). If any of these
+  groups have a count below this value,
+  no analysis will be performed on that
+  marker.
+  
+  **Default:** 5
+:-r,--iterations <iterations>: Sets the max number of iteration to
+  perform when computing logistic
+  regression.
+  
+  **Default:** 500
+:-t,--threshold <threshold>: Sets the min stable threshold when
+  computing logistic regression.
+  
+  
+  **Default:** 10E-3
+:-m,--markerfile <file>: Specifies a file containing
+  interaction markers targeted for
+  analysis.
 :-w,--rawpermutation:
   Sets if permutation rawdata should be
-  printed to result file (Default: No)
+  written to result file.
   With permutation rawdata output, the first
   row shows the original data, whereas
-  the other rows are the permutated data
+  the other rows are the permutated data.
+  
+  **Default:** No
 :-s,--seed <value>: Specifies the seed used by the PRNG.
-  Default: 123456789.
+  
+  **Default:** 123456789.
 :-y,--phenotypes <filename>: Specifies a file for alternate mutiple phenotypes.
-  [Default: none]
 
 RECODE
 ======
@@ -155,7 +173,7 @@ Individuals columns should be name INDID.
 Environment variable should be name ENV
 All other columns will be treated as covariate columns
 
-Example.::
+Example::
 
   INDID     ENV COV1  HEIGHT  EYE_COLOR
   04D01801  0   1     0       1
@@ -163,7 +181,7 @@ Example.::
 First column is Individual ID, and 2nd is Environment.
 COV1, HEIGHT and EYE_COLOR are all covariates.
 If no interaction variable file is present, the interaction will be calculated
-from the genotype data.
+from the available data.
 
 LIMIT FILE
 ^^^^^^^^^^
@@ -176,7 +194,7 @@ whereas the Multiplicative_interaction_term_pvalue cutoff column should
 be name CUTOFF_MULT.
 As many cutoff values as wanted can be added.
 
-Example.::
+Example::
 
   CUTOFF_APP CUTOFF_MULT
   0.01       0.05
@@ -185,7 +203,7 @@ Example.::
 INTERACTION MARKER FILE
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Should only contain one column with marker names.
+Should only contain one column with marker names and no header.
 
 ALTERNATIVE MULTIPLE PHENOTYPE FILES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

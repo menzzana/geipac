@@ -174,8 +174,10 @@ class LimitData : public Loader {
 //------------------------------------------------------------------------------
 class FAMData : public Loader {
   public:
-    enum POSITION {FAMILYID,INDIVIDUALID,PATERNALID,MATERNAL_ID,GENDER,PHENOTYPE};
-    static const int MAX_COLUMNS=6;
+    enum POSITION {
+      FAMILYID,INDIVIDUALID,PATERNALID,MATERNAL_ID,GENDER,PHENOTYPE,
+      MAX_COLUMNS
+      };
     #define FAM_FILE ".fam"
 
     int gender;
@@ -190,8 +192,9 @@ class FAMData : public Loader {
 //------------------------------------------------------------------------------
 class BIMData : public Loader {
   public:
-    enum POSITION {CHROMOSOME,MARKER,GENE_DISTANCE,BASE_POS,ALLELE1,ALLELE2};
-    static const int MAX_COLUMNS=6;
+    enum POSITION {
+      CHROMOSOME,MARKER,GENE_DISTANCE,BASE_POS,ALLELE1,ALLELE2,
+      MAX_COLUMNS};
     #define BIM_FILE ".bim"
 
     char allele1,allele2;
@@ -242,7 +245,9 @@ class IVariableData : public Loader {
 //------------------------------------------------------------------------------
 class AltPhenotypeData : public Loader {
   public:
-    enum POSITION {FAMILYID,INDIVIDUALID,PHENOTYPE1};    
+    enum POSITION {
+      FAMILYID,INDIVIDUALID,PHENOTYPE1
+      };
     string individualid;
     int *aphenotype,naphenotype;
     AltPhenotypeData *Next;

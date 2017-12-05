@@ -103,10 +103,9 @@ namespace RESULT_COLUMNS {
     };
 
   enum INDEX_TEXT {
-    INTERACTION, CHR, SNP, PERM, MINOR, MAJOR, RISK
+    INTERACTION, CHR, SNP, PERM, MINOR, MAJOR, RISK,
+    LENGTH_TEXT
     };
-
-  static const int LENGTH_TEXT=7;
 //------------------------------------------------------------------------------
   const char *const VALUES[]={
     "ORa_double_exposure", "ORa_double_exposure_lower_limit","ORa_double_exposure_higher_limit", "ORa_test_marker",
@@ -123,10 +122,9 @@ namespace RESULT_COLUMNS {
     ORII, ORIIL, ORIIH, ORIO, ORIOL, ORIOH, OROI, OROIL, OROIH, AP, APL, APH,	APP,
     STABLELRA, MULT, ORMII, ORMIIL, ORMIIH, ORMIO, ORMIOL, ORMIOH, ORMOI, ORMOIL,
     ORMOIH, APM, APML, APMH, APMP, STABLELRM, IND00_0, IND00_1, IND01_0, IND01_1,
-    IND10_0, IND10_1, IND11_0, IND11_1, RECODE
-    };
-
-  static const int LENGTH_VALUES=38;    
+    IND10_0, IND10_1, IND11_0, IND11_1, RECODE,
+    LENGTH_VALUES
+    };    
 //------------------------------------------------------------------------------
   bool const PERMUTED_VALUE[] {
     true, true, true, true, true, true, true, true, true, true, false, false,
@@ -136,15 +134,14 @@ namespace RESULT_COLUMNS {
     };
 //------------------------------------------------------------------------------
   enum INDEX_TOTAL_PERMUTATIONS {
-    TPERM,TSIGNAPP,TAPP,TSIGNMULT,TMULT
+    TPERM,TSIGNAPP,TAPP,TSIGNMULT,TMULT,
+    LENGTH_TOTAL
     };
     
   const char *const TOTAL_PERMUTATIONS[]={
     "Permutation","Significance Limit", "APP_permutation_pvalue",
     "Significance Limit", "MULT_permutation_pvalue"
     };
-  
-  static const int LENGTH_TOTAL=5;
 //------------------------------------------------------------------------------
   }
 //==============================================================================
