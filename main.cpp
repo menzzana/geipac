@@ -101,16 +101,15 @@ int main(int argc, char **argv) {
       datastore.appnegative=true;
     if (option_map.count(CMDOPTIONS::MODEL_OPTION[1])) {
       string s1=boost::algorithm::to_lower_copy(option_map[CMDOPTIONS::MODEL_OPTION[1]].as<string>());
-      datastore.model=s1.compare(GenEnvGen2I::DOM)==0?GenEnvGen2I::DOMINANT:
-        datastore.model=s1.compare(GenEnvGen2I::REC)==0?GenEnvGen2I::RECESSIVE:0;
+      datastore.model=s1.compare(GenEnvGen2I::DOM)==0?GenEnvGen2I::Model::DOMINANT:
+        datastore.model=s1.compare(GenEnvGen2I::REC)==0?GenEnvGen2I::Model::RECESSIVE:GenEnvGen2I::Model::NONE;
       }
     if (option_map.count(CMDOPTIONS::RAWPERMUTATION_OPTION[1]))
       datastore.rawpermutation=true;
     if (option_map.count(CMDOPTIONS::AP_OPTION[1])) {
       char c1=tolower(option_map[CMDOPTIONS::AP_OPTION[1]].as<char>());
-      datastore.apcalculation=(c1==GenEnvGen2I::DISEASE?GenEnvGen2I::PROPORTION_DISEASE:
-        c1==GenEnvGen2I::EFFECT?GenEnvGen2I::PROPORTION_EFFECT:
-        c1==GenEnvGen2I::CORRECTED?GenEnvGen2I::PROPORTION_CORRECTED:0);
+      datastore.apcalculation=(c1==GenEnvGen2I::EFFECT?GenEnvGen2I::Proportion::EFFECT:
+        c1==GenEnvGen2I::CORRECTED?GenEnvGen2I::Proportion::CORRECTED:GenEnvGen2I::Proportion::DISEASE);
       }
     if (option_map.count(CMDOPTIONS::OUTPUT_OPTION[1]))
       outputdir=option_map[CMDOPTIONS::OUTPUT_OPTION[1]].as<string>();
@@ -140,7 +139,7 @@ int main(int argc, char **argv) {
     // Check received data
     if (plink==NULL)
       THROW_ERROR(ERROR_TEXT::NO_PLINK_FILES);
-    if (datastore.model==GenEnvGen2I::NO_MODEL)
+    if (datastore.model==GenEnvGen2I::Model::NONE)
       THROW_ERROR(ERROR_TEXT::NO_MODEL_TYPE);
     if (!plink->bim->setInteractionMarkerIndex(imarker))
       THROW_ERROR(ERROR_TEXT::MISSING_INTERACTION_MARKERS);
@@ -193,13 +192,13 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
     WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
     WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
-    WRITELN_VALUE(HEADER_TEXT::MODEL,(datastore.model==GenEnvGen2I::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::MODEL,(datastore.model==GenEnvGen2I::Model::DOMINANT?GenEnvGen2I::DOM_TEXT:GenEnvGen2I::REC_TEXT));
     WRITELN_VALUE(HEADER_TEXT::CUTOFF,datastore.cutoff);
     WRITELN_VALUE(HEADER_TEXT::ITERATIONS,datastore.iterations);
     WRITELN_VALUE(HEADER_TEXT::THRESHOLD,datastore.threshold);
     WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
-    WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::DISEASE?GenEnvGen2I::DISEASE_TEXT:
-      datastore.apcalculation==GenEnvGen2I::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
+    WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::Proportion::DISEASE?GenEnvGen2I::DISEASE_TEXT:
+      datastore.apcalculation==GenEnvGen2I::Proportion::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
     WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==NULL?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
     // Delete pointers structures for import of data
     imarker->Delete<IMarkerData>();

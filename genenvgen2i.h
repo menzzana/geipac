@@ -34,16 +34,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/math/distributions/chi_squared.hpp>
 //==============================================================================
 namespace GenEnvGen2I {
-  enum PHENOTYPE_TYPE {PHENOTYPE_UNKNOWN, PHENOTYPE_UNAFFECTED,PHENOTYPE_AFFECTED};
-  enum GENDER_TYPE {GENDER_UNKNOWN,GENDER_MALE,GENDER_FEMALE};
-  enum INDEX_TYPE {INDEX_CONTROL_PRIMARY,INDEX_CONTROL_SECONDARY,INDEX_CASE_PRIMARY,INDEX_CASE_SECONDARY,INDEX_POSITION_OFFSET=1,INDEX_NA=0};
-  enum MATRIX_TYPE {MATRIX_INDEX_A0B0,MATRIX_INDEX_A1B0,MATRIX_INDEX_A0B1,MATRIX_INDEX_A1B1,MATRIX_INDEX_COV2};
-  enum MATRIX_MULT_TYPE {MATRIX_INDEX_A1m,MATRIX_INDEX_B1m,MATRIX_INDEX_A1mB1m,MATRIX_INDEX_COV1};
-  enum LR_TYPE {LR_BETA0,LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1,LR_INDEX_COV2};
-  enum LR_MULT_TYPE {LR_BETA0_M,LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m,LR_INDEX_COV1};
-  enum ZYGOSITY_TYPE {HOMOZYGOTE_PRIMARY, ZYGOTE_UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY};
-  enum RISKFACTOR_TYPE {NO_RISK,RISK,NA_RISK=-1};
-  enum INTERACTION_TYPE {NO_INTERACTION,INTERACTION,NA_INTERACTION=-1};
+  enum class Phenotype {UNKNOWN, UNAFFECTED,AFFECTED};
+  enum class Gender {UNKNOWN,MALE,FEMALE};
+  enum class Allele {CONTROL_PRIMARY,CONTROL_SECONDARY,CASE_PRIMARY,CASE_SECONDARY,OFFSET=1,NA=0};
+  enum class Ap {A0B0,A1B0,A0B1,A1B1,LENGTH};
+  enum class Apm {A1,B1,A1B1,LENGTH};
+  enum class Lr {BETA0,A1B0,A0B1,A1B1,LENGTH};
+  enum class Lrm {BETA0,A1,B1,A1B1,LENGTH};
+  enum class Zygosity {HOMOZYGOTE_PRIMARY, UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY};
+  enum class RiskFactor {NO,YES,NA=-1};
+  enum class Interaction {NO,YES,NA=-1};
   #define CHROMOSOME_X "X"
   #define DELIMITER "\t"
   static const char DISEASE='d';
@@ -63,7 +63,8 @@ namespace GenEnvGen2I {
     public:
       DataStore *data;
       double **covariate1,**covariate2;
-      int *interaction,*imarkinteraction,*riskfactors;
+      int *interaction,*imarkinteraction;
+      RiskFactor *riskfactors;
       
       Analysis(DataStore *datastore);
       ~Analysis();

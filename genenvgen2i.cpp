@@ -24,14 +24,14 @@ using namespace GenEnvGen2I;
 Analysis::Analysis(DataStore *datastore) {
   data=datastore;
   imarkinteraction=NULL;
-  riskfactors=new int[data->nindividualid];
+  riskfactors=new RiskFactor[data->nindividualid];
   interaction=new int[data->nindividualid];
-  covariate1=global::make2DArray<double>(data->nindividualid,MATRIX_INDEX_COV1+data->ncovariate);
-  covariate2=global::make2DArray<double>(data->nindividualid,MATRIX_INDEX_COV2+data->ncovariate);
+  covariate1=global::make2DArray<double>(data->nindividualid,(int)Apm::LENGTH+data->ncovariate);
+  covariate2=global::make2DArray<double>(data->nindividualid,(int)Ap::LENGTH+data->ncovariate);
   for (int y1=0; y1<data->nindividualid; y1++)
     for (int x1=0; x1<data->ncovariate; x1++) {
-      covariate1[y1][MATRIX_INDEX_COV1+x1]=data->covariate[y1][x1];
-      covariate2[y1][MATRIX_INDEX_COV2+x1]=data->covariate[y1][x1];
+      covariate1[y1][(int)Apm::LENGTH+x1]=data->covariate[y1][x1];
+      covariate2[y1][(int)Ap::LENGTH+x1]=data->covariate[y1][x1];
       }  
   }
 //------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ void Analysis::run(int interactivemarkeridx) {
   string results_text[RESULT_COLUMNS::LENGTH_TEXT];
   double results_value[RESULT_COLUMNS::LENGTH_VALUES],original_value[RESULT_COLUMNS::LENGTH_VALUES];
   double perm_value[RESULT_COLUMNS::LENGTH_VALUES];
-  
+
   setInteraction(interactivemarkeridx);
   #pragma omp for
     for (int markeridx=0; markeridx<data->nmarkerid; markeridx++) {
@@ -139,24 +139,24 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
   calculateRiskFactors(markeridx,phenotypex,riskallele,recode);
   calculateRiskMatrix(phenotypex,riskmatrix);
   if (!belowCutOff(riskmatrix)) {
-    setCleanData(markeridx,phenotypex,covariate1,logreg.y,logreg.x,MATRIX_INDEX_COV1+data->ncovariate,true);
+    setCleanData(markeridx,phenotypex,covariate1,logreg.y,logreg.x,(int)Apm::LENGTH+data->ncovariate,true);
     belowthreshold=logreg.maximumLikelihoodRegression(data->iterations,data->threshold);
     results_value[RESULT_COLUMNS::STABLELRM]=belowthreshold?1:0;
-    results_value[RESULT_COLUMNS::MULT]=1-cdf(chi2,pow(logreg.z(LR_INDEX_A1mB1m),2));
-    results_value[RESULT_COLUMNS::ORMIO]=logreg.oddsratio(LR_INDEX_A1m);
-    results_value[RESULT_COLUMNS::ORMIOL]=logreg.lowCI(LR_INDEX_A1m);
-    results_value[RESULT_COLUMNS::ORMIOH]=logreg.highCI(LR_INDEX_A1m);
-    results_value[RESULT_COLUMNS::ORMOI]=logreg.oddsratio(LR_INDEX_B1m);
-    results_value[RESULT_COLUMNS::ORMOIL]=logreg.lowCI(LR_INDEX_B1m);
-    results_value[RESULT_COLUMNS::ORMOIH]=logreg.highCI(LR_INDEX_B1m);
-    results_value[RESULT_COLUMNS::ORMII]=logreg.oddsratio(LR_INDEX_A1mB1m);
-    results_value[RESULT_COLUMNS::ORMIIL]=logreg.lowCI(LR_INDEX_A1mB1m);
-    results_value[RESULT_COLUMNS::ORMIIH]=logreg.highCI(LR_INDEX_A1mB1m);
+    results_value[RESULT_COLUMNS::MULT]=1-cdf(chi2,pow(logreg.z((int)Lrm::A1B1),2));
+    results_value[RESULT_COLUMNS::ORMIO]=logreg.oddsratio((int)Lrm::A1);
+    results_value[RESULT_COLUMNS::ORMIOL]=logreg.lowCI((int)Lrm::A1);
+    results_value[RESULT_COLUMNS::ORMIOH]=logreg.highCI((int)Lrm::A1);
+    results_value[RESULT_COLUMNS::ORMOI]=logreg.oddsratio((int)Lrm::B1);
+    results_value[RESULT_COLUMNS::ORMOIL]=logreg.lowCI((int)Lrm::B1);
+    results_value[RESULT_COLUMNS::ORMOIH]=logreg.highCI((int)Lrm::B1);
+    results_value[RESULT_COLUMNS::ORMII]=logreg.oddsratio((int)Lrm::A1B1);
+    results_value[RESULT_COLUMNS::ORMIIL]=logreg.lowCI((int)Lrm::A1B1);
+    results_value[RESULT_COLUMNS::ORMIIH]=logreg.highCI((int)Lrm::A1B1);
     double apmvalue;
-    apmvalue=logreg.calculateAPMValue(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+    apmvalue=logreg.calculateAPMValue((int)Lrm::A1,(int)Lrm::B1,(int)Lrm::A1B1);
     results_value[RESULT_COLUMNS::APM]=apmvalue;
     double apmerror;
-    apmerror=logreg.APSEM(LR_INDEX_A1m,LR_INDEX_B1m,LR_INDEX_A1mB1m);
+    apmerror=logreg.APSEM((int)Lrm::A1,(int)Lrm::B1,(int)Lrm::A1B1);
     if (apmerror>0) {
       results_value[RESULT_COLUMNS::APML]=logreg.lowCI(apmvalue,apmerror);
       results_value[RESULT_COLUMNS::APMH]=logreg.highCI(apmvalue,apmerror);
@@ -164,21 +164,21 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
       results_value[RESULT_COLUMNS::APMP]=(1-cdf(normaldist,abs(apmvalue)))*2;
       }
     }
-  setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+data->ncovariate,false);
+  setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,(int)Ap::LENGTH+data->ncovariate,false);
   belowthreshold=logreg.maximumLikelihoodRegression(data->iterations,data->threshold);
-  if (logreg.beta(LR_INDEX_A1B0)<0 &&
-      logreg.beta(LR_INDEX_A1B0)<logreg.beta(LR_INDEX_A0B1) &&
-      logreg.beta(LR_INDEX_A1B0)<logreg.beta(LR_INDEX_A1B1))
+  if (logreg.beta((int)Lr::A1B0)<0 &&
+      logreg.beta((int)Lr::A1B0)<logreg.beta((int)Lr::A0B1) &&
+      logreg.beta((int)Lr::A1B0)<logreg.beta((int)Lr::A1B1))
     recode=1;
-  if (logreg.beta(LR_INDEX_A0B1)<0 &&
-      logreg.beta(LR_INDEX_A0B1)<logreg.beta(LR_INDEX_A1B0) &&
-      logreg.beta(LR_INDEX_A0B1)<logreg.beta(LR_INDEX_A1B1)) {
+  if (logreg.beta((int)Lr::A0B1)<0 &&
+      logreg.beta((int)Lr::A0B1)<logreg.beta((int)Lr::A1B0) &&
+      logreg.beta((int)Lr::A0B1)<logreg.beta((int)Lr::A1B1)) {
     recode=2;
     swapInteractions();
     }
-  if (logreg.beta(LR_INDEX_A1B1)<0 &&
-      logreg.beta(LR_INDEX_A1B1)<logreg.beta(LR_INDEX_A1B0) &&
-      logreg.beta(LR_INDEX_A1B1)<logreg.beta(LR_INDEX_A0B1)) {
+  if (logreg.beta((int)Lr::A1B1)<0 &&
+      logreg.beta((int)Lr::A1B1)<logreg.beta((int)Lr::A1B0) &&
+      logreg.beta((int)Lr::A1B1)<logreg.beta((int)Lr::A0B1)) {
     recode=3;
     swapInteractions();
     }
@@ -196,34 +196,34 @@ void Analysis::analyzeData(int markeridx,int *phenotypex,string *results_text, d
   results_value[RESULT_COLUMNS::IND11_1]=riskmatrix[RESULT_COLUMNS::IND11_1-RESULT_COLUMNS::IND00_0];
   results_value[RESULT_COLUMNS::RECODE]=recode;
   if (!belowCutOff(riskmatrix)) {
-    setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,MATRIX_INDEX_COV2+data->ncovariate,false);
+    setCleanData(markeridx,phenotypex,covariate2,logreg.y,logreg.x,(int)Ap::LENGTH+data->ncovariate,false);
     belowthreshold=logreg.maximumLikelihoodRegression(data->iterations,data->threshold);
     results_value[RESULT_COLUMNS::STABLELRA]=belowthreshold?1:0;
-    results_value[RESULT_COLUMNS::ORIO]=logreg.oddsratio(LR_INDEX_A1B0);
-    results_value[RESULT_COLUMNS::ORIOL]=logreg.lowCI(LR_INDEX_A1B0);
-    results_value[RESULT_COLUMNS::ORIOH]=logreg.highCI(LR_INDEX_A1B0);
-    results_value[RESULT_COLUMNS::ORII]=logreg.oddsratio(LR_INDEX_A1B1);
-    results_value[RESULT_COLUMNS::ORIIL]=logreg.lowCI(LR_INDEX_A1B1);
-    results_value[RESULT_COLUMNS::ORIIH]=logreg.highCI(LR_INDEX_A1B1);
-    results_value[RESULT_COLUMNS::OROI]=logreg.oddsratio(LR_INDEX_A0B1);
-    results_value[RESULT_COLUMNS::OROIL]=logreg.lowCI(LR_INDEX_A0B1);
-    results_value[RESULT_COLUMNS::OROIH]=logreg.highCI(LR_INDEX_A0B1);
+    results_value[RESULT_COLUMNS::ORIO]=logreg.oddsratio((int)Lr::A1B0);
+    results_value[RESULT_COLUMNS::ORIOL]=logreg.lowCI((int)Lr::A1B0);
+    results_value[RESULT_COLUMNS::ORIOH]=logreg.highCI((int)Lr::A1B0);
+    results_value[RESULT_COLUMNS::ORII]=logreg.oddsratio((int)Lr::A1B1);
+    results_value[RESULT_COLUMNS::ORIIL]=logreg.lowCI((int)Lr::A1B1);
+    results_value[RESULT_COLUMNS::ORIIH]=logreg.highCI((int)Lr::A1B1);
+    results_value[RESULT_COLUMNS::OROI]=logreg.oddsratio((int)Lr::A0B1);
+    results_value[RESULT_COLUMNS::OROIL]=logreg.lowCI((int)Lr::A0B1);
+    results_value[RESULT_COLUMNS::OROIH]=logreg.highCI((int)Lr::A0B1);
     double apvalue=0;
     switch(data->apcalculation) {
-      case PROPORTION_DISEASE:
-        apvalue=logreg.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg.oddsratio(LR_INDEX_A1B1);
+      case Proportion::DISEASE:
+        apvalue=logreg.calculateRERI((int)Lr::A1B0,(int)Lr::A0B1,(int)Lr::A1B1)/logreg.oddsratio((int)Lr::A1B1);
         break;
-      case PROPORTION_EFFECT:
-        apvalue=logreg.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/logreg.oddsratio(LR_INDEX_A1B1)-1;
+      case Proportion::EFFECT:
+        apvalue=logreg.calculateRERI((int)Lr::A1B0,(int)Lr::A0B1,(int)Lr::A1B1)/logreg.oddsratio((int)Lr::A1B1)-1;
         break;
-      case PROPORTION_CORRECTED:
-        apvalue=logreg.calculateRERI(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1)/
-                max(logreg.oddsratio(LR_INDEX_A1B1),logreg.oddsratio(LR_INDEX_A1B0)+logreg.oddsratio(LR_INDEX_A0B1)-1);
+      case Proportion::CORRECTED:
+        apvalue=logreg.calculateRERI((int)Lr::A1B0,(int)Lr::A0B1,(int)Lr::A1B1)/
+                max(logreg.oddsratio((int)Lr::A1B1),logreg.oddsratio((int)Lr::A1B0)+logreg.oddsratio((int)Lr::A0B1)-1);
         break;
       }
-    double aperror;
-    aperror=logreg.APSEM(LR_INDEX_A1B0,LR_INDEX_A0B1,LR_INDEX_A1B1);
     results_value[RESULT_COLUMNS::AP]=apvalue;
+    double aperror;
+    aperror=logreg.APSEM((int)Lr::A1B0,(int)Lr::A0B1,(int)Lr::A1B1);
     if (aperror>0) {
       results_value[RESULT_COLUMNS::APL]=logreg.lowCI(apvalue,aperror);
       results_value[RESULT_COLUMNS::APH]=logreg.highCI(apvalue,aperror);
@@ -262,17 +262,17 @@ void Analysis::alleleSummaryCount(int *alleles,int markeridx,int *phenotypex) {
   int offset;
 
   for (int i1=0; i1<data->nindividualid; i1++) {
-    offset=(phenotypex[i1]==PHENOTYPE_AFFECTED?INDEX_CASE_PRIMARY:INDEX_CONTROL_PRIMARY);
-    switch (data->genotype[i1][markeridx]) {
-      case HOMOZYGOTE_PRIMARY:
+    offset=(phenotypex[i1]==(int)Phenotype::AFFECTED?(int)Allele::CASE_PRIMARY:(int)Allele::CONTROL_PRIMARY);
+    switch ((Zygosity)data->genotype[i1][markeridx]) {
+      case Zygosity::HOMOZYGOTE_PRIMARY:
         alleles[offset]+=2;
         break;
-      case HOMOZYGOTE_SECONDARY:
-        alleles[offset+INDEX_POSITION_OFFSET]+=2;
+      case Zygosity::HOMOZYGOTE_SECONDARY:
+        alleles[offset+(int)Allele::OFFSET]+=2;
         break;
-      case HETEROZYGOTE:
+      case Zygosity::HETEROZYGOTE:
         alleles[offset]++;
-        alleles[offset+INDEX_POSITION_OFFSET]++;
+        alleles[offset+(int)Allele::OFFSET]++;
         break;
       }
     }
@@ -290,36 +290,36 @@ void Analysis::setInteraction(int interactivemarkeridx) {
   if (imarkinteraction==NULL)
     imarkinteraction=new int[data->nindividualid];
   alleleSummaryCount(alleles,interactivemarkeridx,data->phenotype[ORIGINAL]);
-  ratioriskalleleprimary=(double)alleles[INDEX_CASE_PRIMARY]/(double)alleles[INDEX_CONTROL_PRIMARY];
-  ratioriskallelesecondary=(double)alleles[INDEX_CASE_SECONDARY]/(double)alleles[INDEX_CONTROL_SECONDARY];
-  riskhomozygote=(ratioriskalleleprimary>ratioriskallelesecondary?HOMOZYGOTE_PRIMARY:HOMOZYGOTE_SECONDARY);
+  ratioriskalleleprimary=(double)alleles[(int)Allele::CASE_PRIMARY]/(double)alleles[(int)Allele::CONTROL_PRIMARY];
+  ratioriskallelesecondary=(double)alleles[(int)Allele::CASE_SECONDARY]/(double)alleles[(int)Allele::CONTROL_SECONDARY];
+  riskhomozygote=(ratioriskalleleprimary>ratioriskallelesecondary?(int)Zygosity::HOMOZYGOTE_PRIMARY:(int)Zygosity::HOMOZYGOTE_SECONDARY);
   for (int i1=0; i1<data->nindividualid; i1++) {
-    imarkinteraction[i1]=NA_INTERACTION;
+    imarkinteraction[i1]=(int)Interaction::NA;
     if (!validGeneticData(i1,interactivemarkeridx,data->phenotype[ORIGINAL]))
       continue;
-    switch (data->genotype[i1][interactivemarkeridx]) {
-      case HOMOZYGOTE_PRIMARY:
-        imarkinteraction[i1]=(riskhomozygote==HOMOZYGOTE_PRIMARY?INTERACTION:NO_INTERACTION);
+    switch ((Zygosity)data->genotype[i1][interactivemarkeridx]) {
+      case Zygosity::HOMOZYGOTE_PRIMARY:
+        imarkinteraction[i1]=(int)(riskhomozygote==(int)Zygosity::HOMOZYGOTE_PRIMARY?Interaction::YES:Interaction::NO);
         break;
-      case HOMOZYGOTE_SECONDARY:
-        imarkinteraction[i1]=(riskhomozygote==HOMOZYGOTE_SECONDARY?INTERACTION:NO_INTERACTION);
+      case Zygosity::HOMOZYGOTE_SECONDARY:
+        imarkinteraction[i1]=(int)(riskhomozygote==(int)Zygosity::HOMOZYGOTE_SECONDARY?Interaction::YES:Interaction::NO);
         break;
-      case HETEROZYGOTE:
-        imarkinteraction[i1]=(isDominantOrXMale(i1,interactivemarkeridx)?INTERACTION:NO_INTERACTION);
+      case Zygosity::HETEROZYGOTE:
+        imarkinteraction[i1]=(int)(isDominantOrXMale(i1,interactivemarkeridx)?Interaction::YES:Interaction::NO);
         break;
       }
     }
   }
 //------------------------------------------------------------------------------
 bool Analysis::validIndividualData(int individualidx,int markeridx,int *phenotypex) {
-  return (data->genotype[individualidx][markeridx]!=ZYGOTE_UNKNOWN &&
-          phenotypex[individualidx]!=PHENOTYPE_UNKNOWN &&
-          interaction[individualidx]!=NA_INTERACTION);
+  return (data->genotype[individualidx][markeridx]!=(int)Zygosity::UNKNOWN &&
+          phenotypex[individualidx]!=(int)Phenotype::UNKNOWN &&
+          interaction[individualidx]!=(int)Interaction::NA);
   }
 //------------------------------------------------------------------------------
 bool Analysis::validGeneticData(int individualidx,int markeridx,int *phenotypex) {
-  return (data->genotype[individualidx][markeridx]!=ZYGOTE_UNKNOWN &&
-          phenotypex[individualidx]!=PHENOTYPE_UNKNOWN);
+  return (data->genotype[individualidx][markeridx]!=(int)Zygosity::UNKNOWN &&
+          phenotypex[individualidx]!=(int)Phenotype::UNKNOWN);
   }
 //------------------------------------------------------------------------------
 char Analysis::calculateRiskAllele(int markeridx, int *phenotypex, string *results) {
@@ -330,8 +330,8 @@ char Analysis::calculateRiskAllele(int markeridx, int *phenotypex, string *resul
   int alleles[]={0,0,0,0};
 
   alleleSummaryCount(alleles,markeridx,phenotypex);
-  primarycount=alleles[INDEX_CONTROL_PRIMARY]+alleles[INDEX_CASE_PRIMARY];
-  secondarycount=alleles[INDEX_CONTROL_SECONDARY]+alleles[INDEX_CASE_SECONDARY];
+  primarycount=alleles[(int)Allele::CONTROL_PRIMARY]+alleles[(int)Allele::CASE_PRIMARY];
+  secondarycount=alleles[(int)Allele::CONTROL_SECONDARY]+alleles[(int)Allele::CASE_SECONDARY];
   if (primarycount>secondarycount) {
     results[RESULT_COLUMNS::MAJOR]=data->allele1[markeridx];
     results[RESULT_COLUMNS::MINOR]=data->allele2[markeridx];
@@ -340,26 +340,26 @@ char Analysis::calculateRiskAllele(int markeridx, int *phenotypex, string *resul
     results[RESULT_COLUMNS::MAJOR]=data->allele2[markeridx];
     results[RESULT_COLUMNS::MINOR]=data->allele1[markeridx];
     }
-  if (alleles[INDEX_CONTROL_PRIMARY]>alleles[INDEX_CONTROL_SECONDARY]) {
+  if (alleles[(int)Allele::CONTROL_PRIMARY]>alleles[(int)Allele::CONTROL_SECONDARY]) {
     controlmaxallele=data->allele1[markeridx];
-    controlmax=alleles[INDEX_CONTROL_PRIMARY];
+    controlmax=alleles[(int)Allele::CONTROL_PRIMARY];
     }
   else {
     controlmaxallele=data->allele2[markeridx];
-    controlmax=alleles[INDEX_CONTROL_SECONDARY];
+    controlmax=alleles[(int)Allele::CONTROL_SECONDARY];
     }
-  if (alleles[INDEX_CASE_PRIMARY]>alleles[INDEX_CASE_SECONDARY]) {
+  if (alleles[(int)Allele::CASE_PRIMARY]>alleles[(int)Allele::CASE_SECONDARY]) {
     casemaxallele=data->allele1[markeridx];
     caseminallele=data->allele2[markeridx];
-    casemax=alleles[INDEX_CASE_PRIMARY];
+    casemax=alleles[(int)Allele::CASE_PRIMARY];
     }
   else {
     casemaxallele=data->allele2[markeridx];
     caseminallele=data->allele1[markeridx];
-    casemax=alleles[INDEX_CASE_SECONDARY];
+    casemax=alleles[(int)Allele::CASE_SECONDARY];
     }
-  controlmaxratio=(double)controlmax/(double)(alleles[INDEX_CONTROL_PRIMARY]+alleles[INDEX_CONTROL_SECONDARY]);
-  casemaxratio=(double)casemax/(double)(alleles[INDEX_CASE_PRIMARY]+alleles[INDEX_CASE_SECONDARY]);
+  controlmaxratio=(double)controlmax/(double)(alleles[(int)Allele::CONTROL_PRIMARY]+alleles[(int)Allele::CONTROL_SECONDARY]);
+  casemaxratio=(double)casemax/(double)(alleles[(int)Allele::CASE_PRIMARY]+alleles[(int)Allele::CASE_SECONDARY]);
   if (casemaxratio>controlmaxratio && casemaxallele==controlmaxallele)
     return casemaxallele;
   else
@@ -367,28 +367,28 @@ char Analysis::calculateRiskAllele(int markeridx, int *phenotypex, string *resul
   }
 //------------------------------------------------------------------------------
 bool Analysis::isDominantOrXMale(int individualidx,int markeridx) {
-  if (data->model==DOMINANT)
+  if (data->model==Model::DOMINANT)
     return true;
-  return (boost::iequals(data->chromosome[markeridx],CHROMOSOME_X) && data->gender[individualidx]==GENDER_MALE);
+  return (boost::iequals(data->chromosome[markeridx],CHROMOSOME_X) && data->gender[individualidx]==(int)Gender::MALE);
   }
 //------------------------------------------------------------------------------
 void Analysis::calculateRiskFactors(int markeridx,int *phenotypex,char riskallele,int recode) {
   int healthygenotype,riskgenotype;
 
-  healthygenotype=riskallele==data->allele1[markeridx]?HOMOZYGOTE_SECONDARY:HOMOZYGOTE_PRIMARY;
-  riskgenotype=riskallele==data->allele1[markeridx]?HOMOZYGOTE_PRIMARY:HOMOZYGOTE_SECONDARY;
+  healthygenotype=riskallele==data->allele1[markeridx]?(int)Zygosity::HOMOZYGOTE_SECONDARY:(int)Zygosity::HOMOZYGOTE_PRIMARY;
+  riskgenotype=riskallele==data->allele1[markeridx]?(int)Zygosity::HOMOZYGOTE_PRIMARY:(int)Zygosity::HOMOZYGOTE_SECONDARY;
   for (int i1=0; i1<data->nindividualid; i1++) {
-    riskfactors[i1]=NA_RISK;
+    riskfactors[i1]=RiskFactor::NA;
     if (!validIndividualData(i1,markeridx,phenotypex))
       continue;
     if (data->genotype[i1][markeridx]==healthygenotype)
-      riskfactors[i1]=NO_RISK;
+      riskfactors[i1]=RiskFactor::NO;
     if (data->genotype[i1][markeridx]==riskgenotype)
-      riskfactors[i1]=RISK;
-    if (data->genotype[i1][markeridx]==HETEROZYGOTE)
-      riskfactors[i1]=isDominantOrXMale(i1,markeridx)?RISK:NO_RISK;
+      riskfactors[i1]=RiskFactor::YES;
+    if (data->genotype[i1][markeridx]==(int)Zygosity::HETEROZYGOTE)
+      riskfactors[i1]=isDominantOrXMale(i1,markeridx)?RiskFactor::YES:RiskFactor::NO;
     if (recode%2==1)
-      riskfactors[i1]=(riskfactors[i1]==NO_RISK?RISK:NO_RISK);
+      riskfactors[i1]=riskfactors[i1]==RiskFactor::NO?RiskFactor::YES:RiskFactor::NO;
     }
   }
 //------------------------------------------------------------------------------
@@ -397,34 +397,34 @@ void Analysis::calculateRiskMatrix(int *phenotypex,int *riskmatrix) {
 
   fill_n(riskmatrix,N_RISK_MATRIX,0);
   for (int y1=0; y1<data->nindividualid; y1++) {
-    fill_n(covariate1[y1],MATRIX_INDEX_COV1,NA_INTERACTION);
-    fill_n(covariate2[y1],MATRIX_INDEX_COV2,NA_INTERACTION);
-    if (riskfactors[y1]==NA_RISK)
+    fill_n(covariate1[y1],(int)Apm::LENGTH,(int)Interaction::NA);
+    fill_n(covariate2[y1],(int)Ap::LENGTH,(int)Interaction::NA);
+    if (riskfactors[y1]==RiskFactor::NA)
       continue;
-    fill_n(covariate1[y1],MATRIX_INDEX_COV1,NO_INTERACTION);
-    fill_n(covariate2[y1],MATRIX_INDEX_COV2,NO_INTERACTION);
+    fill_n(covariate1[y1],(int)Apm::LENGTH,(int)Interaction::NO);
+    fill_n(covariate2[y1],(int)Ap::LENGTH,(int)Interaction::NO);
     affstatus=phenotypex[y1]-1;
-    if (riskfactors[y1]==NO_RISK && interaction[y1]==NO_INTERACTION) {
-      covariate2[y1][MATRIX_INDEX_A0B0]=INTERACTION;
+    if (riskfactors[y1]==RiskFactor::NO && interaction[y1]==(int)Interaction::NO) {
+      covariate2[y1][(int)Ap::A0B0]=(int)Interaction::YES;
       riskmatrix[affstatus]++;
       }
-    if (riskfactors[y1]==RISK && interaction[y1]==NO_INTERACTION) {
-      covariate2[y1][MATRIX_INDEX_A1B0]=INTERACTION;
+    if (riskfactors[y1]==RiskFactor::YES && interaction[y1]==(int)Interaction::NO) {
+      covariate2[y1][(int)Ap::A1B0]=(int)Interaction::YES;
       riskmatrix[RESULT_COLUMNS::IND10_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
-    if (riskfactors[y1]==NO_RISK && interaction[y1]>=INTERACTION) {
-      covariate2[y1][MATRIX_INDEX_A0B1]=INTERACTION;
+    if (riskfactors[y1]==RiskFactor::NO && interaction[y1]>=(int)Interaction::YES) {
+      covariate2[y1][(int)Ap::A0B1]=(int)Interaction::YES;
       riskmatrix[RESULT_COLUMNS::IND01_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
-    if (riskfactors[y1]==RISK && interaction[y1]>=INTERACTION) {
-      covariate2[y1][MATRIX_INDEX_A1B1]=INTERACTION;
+    if (riskfactors[y1]==RiskFactor::YES && interaction[y1]>=(int)Interaction::YES) {
+      covariate2[y1][(int)Ap::A1B1]=(int)Interaction::YES;
       riskmatrix[RESULT_COLUMNS::IND11_0-RESULT_COLUMNS::IND00_0+affstatus]++;
       }
-    if (riskfactors[y1]==RISK)
-      covariate1[y1][MATRIX_INDEX_A1m]=INTERACTION;
-    if (interaction[y1]>=INTERACTION)
-      covariate1[y1][MATRIX_INDEX_B1m]=INTERACTION;
-    covariate1[y1][MATRIX_INDEX_A1mB1m]=covariate1[y1][MATRIX_INDEX_A1m]*covariate1[y1][MATRIX_INDEX_B1m];
+    if (riskfactors[y1]==RiskFactor::YES)
+      covariate1[y1][(int)Apm::A1]=(int)Interaction::YES;
+    if (interaction[y1]>=(int)Interaction::YES)
+      covariate1[y1][(int)Apm::B1]=(int)Interaction::YES;
+    covariate1[y1][(int)Apm::A1B1]=covariate1[y1][(int)Apm::A1]*covariate1[y1][(int)Apm::B1];
     }
   }
 //------------------------------------------------------------------------------
@@ -444,11 +444,11 @@ void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, M
     if (!validIndividualData(y1,markeridx,y))
       continue;
     desty(y2)=y[y1]-1;
-    destx(y2,LR_BETA0)=1;
+    destx(y2,(int)Lr::BETA0)=1;
     for (x1=0,x2=1; x1<dimx; x1++) {
-      if (x[y1][x1]==NA_INTERACTION)
+      if (x[y1][x1]==(int)Interaction::NA)
         break;
-      if (x1==MATRIX_INDEX_A0B0 && !a0b0)
+      if (x1==(int)Ap::A0B0 && !a0b0)
         continue;
       destx(y2,x2)=x[y1][x1];
       x2++;
@@ -462,8 +462,8 @@ void Analysis::setCleanData(int markeridx,int *y, double **x, VectorXd &desty, M
 //------------------------------------------------------------------------------
 void Analysis::swapInteractions() {
   for (int i1=0; i1<data->nindividualid; i1++)
-    if (interaction[i1]!=NA_INTERACTION)
-      interaction[i1]=interaction[i1]==NO_INTERACTION?INTERACTION:NO_INTERACTION;
+    if (interaction[i1]!=(int)Interaction::NA)
+      interaction[i1]=(int)(interaction[i1]==(int)Interaction::NO?Interaction::YES:Interaction::NO);
   }
 //------------------------------------------------------------------------------
 

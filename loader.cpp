@@ -113,8 +113,8 @@ LimitData *LimitData::getSingleRowData(string fstr,...) {
   }
 //---------------------------------------------------------------------------
 FAMData::FAMData() {
-  gender=GenEnvGen2I::GENDER_UNKNOWN;
-  phenotype=GenEnvGen2I::PHENOTYPE_UNKNOWN;
+  gender=(int)GenEnvGen2I::Gender::UNKNOWN;
+  phenotype=(int)GenEnvGen2I::Phenotype::UNKNOWN;
   individualid="";
   index=0;
   Next=NULL;
@@ -181,7 +181,7 @@ bool BIMData::setInteractionMarkerIndex(IMarkerData *imarker) {
   }
 //---------------------------------------------------------------------------
 BEDData::BEDData() {
-  genotype=GenEnvGen2I::ZYGOTE_UNKNOWN;
+  genotype=(int)GenEnvGen2I::Zygosity::UNKNOWN;
   bim=NULL;
   fam=NULL;
   Next=NULL;

@@ -24,13 +24,13 @@ using namespace GenEnvGen2I;
 DataStore::DataStore() {
   randomseed=CALC::rseed;
   appnegative=false;
-  apcalculation=NO_PROPORTION;
+  apcalculation=Proportion::DISEASE;
   threshold=THRESHOLD;
   iterations=ITERATIONS;
   permutations=0;
   naphenotype=0;
   cutoff=CUTOFF;
-  model=NO_MODEL;
+  model=Model::NONE;
   rawpermutation=false;
   markerid=NULL;
   imarkerid=NULL;

@@ -30,8 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "global.h"
 //==============================================================================
 namespace GenEnvGen2I {
-  enum MODEL_TYPE { NO_MODEL, DOMINANT, RECESSIVE };
-  enum PROPORTION_TYPE { NO_PROPORTION, PROPORTION_DISEASE, PROPORTION_EFFECT, PROPORTION_CORRECTED };
+  enum class Model { NONE,DOMINANT,RECESSIVE };
+  enum class Proportion { DISEASE,EFFECT,CORRECTED };
   
   static const double THRESHOLD=1E-3;
   static const int ITERATIONS=500;
@@ -42,7 +42,8 @@ namespace GenEnvGen2I {
   class DataStore {
     public:
       long randomseed;
-      char apcalculation,model;
+      Proportion apcalculation;
+      Model model;
       int cutoff,iterations,permutations,naphenotype;
       int nimarkerid,nmarkerid,nlimit,nindividualid,ncovariate;
       double threshold;
