@@ -43,9 +43,14 @@ Geipac has only been tested with the above mentioned versions, but may function 
 
 In order to build just run::
 
+  mkdir [binary dir]
+  cmake CMakeLists.txt -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>" -B [binary dir]
   cd [binary dir]
-  cmake [source dir]/CMakeLists.txt -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>"
   make
+
+If you would like to link to static libraries use the flag::
+
+  cmake ... -DSTATIC=yes
 
 USAGE
 =====
