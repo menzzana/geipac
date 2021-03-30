@@ -23,7 +23,7 @@ using namespace GenEnvGen2I;
 //------------------------------------------------------------------------------
 Analysis::Analysis(DataStore *datastore) {
   data=datastore;
-  imarkinteraction=NULL;
+  imarkinteraction=nullptr;
   riskfactors=new RiskFactor[data->nindividualid];
   interaction=new int[data->nindividualid];
   covariate1=global::make2DArray<double>(data->nindividualid,(int)Apm::LENGTH+data->ncovariate);
@@ -36,13 +36,13 @@ Analysis::Analysis(DataStore *datastore) {
   }
 //------------------------------------------------------------------------------
 Analysis::~Analysis() {
-  if (data->interactionfromfile==NULL)
+  if (data->interactionfromfile==nullptr)
     delete imarkinteraction;
   delete interaction;
   delete riskfactors;
   delete[] covariate1;
   delete[] covariate2;
-  data=NULL;
+  data=nullptr;
   }
 //------------------------------------------------------------------------------
 void Analysis::run(int interactivemarkeridx) {
@@ -283,11 +283,11 @@ void Analysis::setInteraction(int interactivemarkeridx) {
   int riskhomozygote;
   int alleles[]={0,0,0,0};
 
-  if (data->interactionfromfile!=NULL) {
+  if (data->interactionfromfile!=nullptr) {
     imarkinteraction=data->interactionfromfile;
     return;
     }
-  if (imarkinteraction==NULL)
+  if (imarkinteraction==nullptr)
     imarkinteraction=new int[data->nindividualid];
   alleleSummaryCount(alleles,interactivemarkeridx,data->phenotype[ORIGINAL]);
   ratioriskalleleprimary=(double)alleles[(int)Allele::CASE_PRIMARY]/(double)alleles[(int)Allele::CONTROL_PRIMARY];

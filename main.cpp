@@ -56,11 +56,11 @@ int main(int argc, char **argv) {
 
   try {
     // Initialize
-    imarker=NULL;
-    ivariable=NULL;
-    limit=NULL;
-    plink=NULL;
-    aphenotype=NULL;
+    imarker=nullptr;
+    ivariable=nullptr;
+    limit=nullptr;
+    plink=nullptr;
+    aphenotype=nullptr;
     outputdir="";
     // Program options
     prgm_opt::arg="[Value]";
@@ -119,25 +119,25 @@ int main(int argc, char **argv) {
       ivariable=IVariableData::loadFile<IVariableData>(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>());
     if (option_map.count(CMDOPTIONS::LIMIT_OPTION[1])) {
       limit=LimitData::loadFile<LimitData>(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>());
-      if (limit==NULL)
+      if (limit==nullptr)
         THROW_ERROR(ERROR_TEXT::NO_LIMITS);
       }
     if (option_map.count(CMDOPTIONS::BASE_OPTION[1])) {
       BIMData *bim;
       FAMData *fam;
-      fam=NULL;
-      bim=NULL;
+      fam=nullptr;
+      bim=nullptr;
       fam=FAMData::loadFile<FAMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+FAM_FILE);
       bim=BIMData::loadFile<BIMData>(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BIM_FILE);
       plink=BEDData::loadBinaryFile(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()+BED_FILE,fam,bim);
       }
     if (option_map.count(CMDOPTIONS::ALT_PHENOTYPE_OPTION[1])) {
       aphenotype=AltPhenotypeData::loadFile<AltPhenotypeData>(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>());
-      if (aphenotype==NULL)
+      if (aphenotype==nullptr)
         THROW_ERROR(ERROR_TEXT::NO_ALT_PHENOTYPE);
       }      
     // Check received data
-    if (plink==NULL)
+    if (plink==nullptr)
       THROW_ERROR(ERROR_TEXT::NO_PLINK_FILES);
     if (datastore.model==GenEnvGen2I::Model::NONE)
       THROW_ERROR(ERROR_TEXT::NO_MODEL_TYPE);
@@ -155,40 +155,40 @@ int main(int argc, char **argv) {
     datastore.nindividualid=plink->fam->Length<FAMData>();
     datastore.nlimit=limit->Length<LimitData>();
     datastore.nmarkerid=plink->bim->Length<BIMData>();
-    datastore.ncovariate=ivariable==NULL?0:ivariable->ncovariate;
-    if (aphenotype!=NULL)
+    datastore.ncovariate=ivariable==nullptr?0:ivariable->ncovariate;
+    if (aphenotype!=nullptr)
       datastore.naphenotype=aphenotype->naphenotype;
     datastore.initialize();
-    if (imarker==NULL) {
+    if (imarker==nullptr) {
       datastore.nimarkerid=datastore.nmarkerid;
-      datastore.imarkerid=plink->bim->get<int>(&BIMData::index,datastore.nmarkerid,NULL);
+      datastore.imarkerid=plink->bim->get<int>(&BIMData::index,datastore.nmarkerid,nullptr);
       }
     else {
       datastore.nimarkerid=imarker->Length<IMarkerData>();
-      datastore.imarkerid=imarker->get<int>(&IMarkerData::index,datastore.nimarkerid,NULL);
+      datastore.imarkerid=imarker->get<int>(&IMarkerData::index,datastore.nimarkerid,nullptr);
       }
-    datastore.cutoff_app=limit->get<double>(&LimitData::cutoff_app,datastore.nlimit,NULL);
-    datastore.cutoff_mult=limit->get<double>(&LimitData::cutoff_mult,datastore.nlimit,NULL);
-    datastore.gender=plink->fam->get<int>(&FAMData::gender,datastore.nindividualid,NULL);
+    datastore.cutoff_app=limit->get<double>(&LimitData::cutoff_app,datastore.nlimit,nullptr);
+    datastore.cutoff_mult=limit->get<double>(&LimitData::cutoff_mult,datastore.nlimit,nullptr);
+    datastore.gender=plink->fam->get<int>(&FAMData::gender,datastore.nindividualid,nullptr);
     plink->fam->get<int>(&FAMData::phenotype,datastore.nindividualid,datastore.phenotype[GenEnvGen2I::ORIGINAL]);
-    datastore.individualid=plink->fam->get<string>(&FAMData::individualid,datastore.nindividualid,NULL);
-    datastore.allele1=plink->bim->get<char>(&BIMData::allele1,datastore.nmarkerid,NULL);
-    datastore.allele2=plink->bim->get<char>(&BIMData::allele2,datastore.nmarkerid,NULL);
-    datastore.markerid=plink->bim->get<string>(&BIMData::markerid,datastore.nmarkerid,NULL);
-    datastore.chromosome=plink->bim->get<string>(&BIMData::chromosome,datastore.nmarkerid,NULL);
+    datastore.individualid=plink->fam->get<string>(&FAMData::individualid,datastore.nindividualid,nullptr);
+    datastore.allele1=plink->bim->get<char>(&BIMData::allele1,datastore.nmarkerid,nullptr);
+    datastore.allele2=plink->bim->get<char>(&BIMData::allele2,datastore.nmarkerid,nullptr);
+    datastore.markerid=plink->bim->get<string>(&BIMData::markerid,datastore.nmarkerid,nullptr);
+    datastore.chromosome=plink->bim->get<string>(&BIMData::chromosome,datastore.nmarkerid,nullptr);
     datastore.genotype=plink->getGenotypes(datastore.nindividualid,datastore.nmarkerid);
-    datastore.covariate=ivariable->get<int>(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate,NULL);
-    if (aphenotype!=NULL)
+    datastore.covariate=ivariable->get<int>(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate,nullptr);
+    if (aphenotype!=nullptr)
       aphenotype->get<int>(&AltPhenotypeData::aphenotype,datastore.nindividualid,datastore.naphenotype,datastore.aphenotype[GenEnvGen2I::ORIGINAL]);
-    if (ivariable->areInteractionsPresent() && imarker==NULL)
-      datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,NULL);
+    if (ivariable->areInteractionsPresent() && imarker==nullptr)
+      datastore.interactionfromfile=ivariable->get<int>(&IVariableData::interaction,datastore.nindividualid,nullptr);
     // Print some information message.
     WRITELN(HEADER_TEXT::RUN);
     WRITELN_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
-    WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==NULL?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==NULL?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::INTERACTION,(datastore.interactionfromfile==NULL?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
-    WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==NULL?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::INTERACTION,(datastore.interactionfromfile==nullptr?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
+    WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
     WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
     WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
     WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::Proportion::DISEASE?GenEnvGen2I::DISEASE_TEXT:
       datastore.apcalculation==GenEnvGen2I::Proportion::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
-    WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==NULL?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
     // Delete pointers structures for import of data
     imarker->Delete<IMarkerData>();
     limit->Delete<LimitData>();

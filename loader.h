@@ -43,18 +43,24 @@ class Loader {
     template<typename T> T *getEntry(string name) {
       T *tl1;
 
-      for (tl1=(T *)this; tl1!=NULL; tl1=tl1->Next)
+      for (tl1=(T *)this; tl1!=nullptr; tl1=tl1->Next)
         if (name.compare(tl1->markerid)==0)
           return tl1;
-      return NULL;
+      return nullptr;
       }
 //------------------------------------------------------------------------------
     template<typename T> T *push_back() {
       T *tl1,*tl2;
 
-      tl2=new T();
-      if (this!=NULL) {
-        for (tl1=(T *)this; tl1->Next!=NULL; tl1=tl1->Next);
+      try {
+        tl2=new T();
+        }
+      catch(exception &e) {
+        cerr << e.what() << endl;
+        exit(EXIT_FAILURE);
+        }
+      if (this!=nullptr) {
+        for (tl1=(T *)this; tl1->Next!=nullptr; tl1=tl1->Next);
         tl1->Next=tl2;
         }
       return tl2;
@@ -64,7 +70,7 @@ class Loader {
       T *tl1;
       int i1;
 
-      for (tl1=(T *)this,i1=0; tl1!=NULL; tl1=tl1->Next,i1++);
+      for (tl1=(T *)this,i1=0; tl1!=nullptr; tl1=tl1->Next,i1++);
       return i1;
       }
 //------------------------------------------------------------------------------
@@ -74,9 +80,9 @@ class Loader {
       int i1;
 
       if (length==0)
-        return NULL;
-      dest=dest1==NULL?new T[length]:dest1;
-      for (tl1=(K *)this,i1=0; tl1!=NULL; tl1=tl1->Next,i1++)
+        return nullptr;
+      dest=dest1==nullptr?new T[length]:dest1;
+      for (tl1=(K *)this,i1=0; tl1!=nullptr; tl1=tl1->Next,i1++)
         dest[i1]=tl1->*pmember;
       return dest;
       }
@@ -87,9 +93,9 @@ class Loader {
       int y1,x1;
 
       if (rows==0 || columns==0)
-        return NULL;
-      dest=dest1==NULL?global::make2DArray<T>(rows,columns):dest1;
-      for (tl1=(K *)this,y1=0; tl1!=NULL; tl1=tl1->Next,y1++)
+        return nullptr;
+      dest=dest1==nullptr?global::make2DArray<T>(rows,columns):dest1;
+      for (tl1=(K *)this,y1=0; tl1!=nullptr; tl1=tl1->Next,y1++)
         for (x1=0; x1<columns; x1++)
           dest[y1][x1]=(tl1->*pmember)[x1];
       return dest;
@@ -104,15 +110,15 @@ class Loader {
         fpr.open(filename.c_str());
         if (!fpr.good())
           THROW_ERROR_VALUE(ERROR_TEXT::FILE_NOT_FOUND,filename);
-        data1=data2=NULL;
+        data1=data2=nullptr;
         while (getline(fpr,fstr)) {
           fstr=boost::algorithm::trim_copy(fstr);
           if (fstr.length()==0)
             continue;
           data2=data2->getSingleRowData(fstr,data1);
-          if (data2==NULL)
+          if (data2==nullptr)
             continue;
-          if (data1==NULL)
+          if (data1==nullptr)
             data1=data2;
           }
         fpr.close();
@@ -120,7 +126,7 @@ class Loader {
         }
       catch(exception &e) {
         cerr << e.what() << endl;
-        return NULL;
+        return nullptr;
         }
       }
 //------------------------------------------------------------------------------
@@ -128,21 +134,21 @@ class Loader {
       K *fd1;
       T *dt1;
 
-      if (this==NULL)
+      if (this==nullptr)
         return true;
-      for (dt1=(T *)this,fd1=famdata; dt1!=NULL && fd1!=NULL; dt1=dt1->Next,fd1=fd1->Next)
+      for (dt1=(T *)this,fd1=famdata; dt1!=nullptr && fd1!=nullptr; dt1=dt1->Next,fd1=fd1->Next)
         if (dt1->individualid!=fd1->individualid) {
           WRITELN_VALUE(ERROR_TEXT::MISSING_INDIVIDUAL,dt1->individualid);
           return false;
           }
-      return dt1==NULL && fd1==NULL;
+      return dt1==nullptr && fd1==nullptr;
       }
 //------------------------------------------------------------------------------
     template<typename T> void Delete() {
       T *tl1,*tl2;
 
       tl1=(T *)this;
-      while (tl1!=NULL) {
+      while (tl1!=nullptr) {
         tl2=tl1;
         tl1=tl1->Next;
         delete tl2;
@@ -175,8 +181,7 @@ class LimitData : public Loader {
 class FAMData : public Loader {
   public:
     enum POSITION {
-      FAMILYID,INDIVIDUALID,PATERNALID,MATERNAL_ID,GENDER,PHENOTYPE,
-      MAX_COLUMNS
+      FAMILYID,INDIVIDUALID,PATERNALID,MATERNAL_ID,GENDER,PHENOTYPE,MAX_COLUMNS
       };
     #define FAM_FILE ".fam"
 
@@ -193,8 +198,8 @@ class FAMData : public Loader {
 class BIMData : public Loader {
   public:
     enum POSITION {
-      CHROMOSOME,MARKER,GENE_DISTANCE,BASE_POS,ALLELE1,ALLELE2,
-      MAX_COLUMNS};
+      CHROMOSOME,MARKER,GENE_DISTANCE,BASE_POS,ALLELE1,ALLELE2,MAX_COLUMNS
+      };
     #define BIM_FILE ".bim"
 
     char allele1,allele2;

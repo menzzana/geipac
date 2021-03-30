@@ -32,22 +32,22 @@ DataStore::DataStore() {
   cutoff=CUTOFF;
   model=Model::NONE;
   rawpermutation=false;
-  markerid=NULL;
-  imarkerid=NULL;
-  individualid=NULL;
-  chromosome=NULL;
-  interactionfromfile=NULL;
-  covariate=NULL;
-  cutoff_mult=NULL;
-  cutoff_app=NULL;
-  permuted_mult=NULL;
-  permuted_app=NULL;
-  gender=NULL;
-  phenotype=NULL;
-  aphenotype=NULL;
-  genotype=NULL;
-  allele1=NULL;
-  allele2=NULL;
+  markerid=nullptr;
+  imarkerid=nullptr;
+  individualid=nullptr;
+  chromosome=nullptr;
+  interactionfromfile=nullptr;
+  covariate=nullptr;
+  cutoff_mult=nullptr;
+  cutoff_app=nullptr;
+  permuted_mult=nullptr;
+  permuted_app=nullptr;
+  gender=nullptr;
+  phenotype=nullptr;
+  aphenotype=nullptr;
+  genotype=nullptr;
+  allele1=nullptr;
+  allele2=nullptr;
   nimarkerid=0;
   nmarkerid=0;
   nindividualid=0;
@@ -61,7 +61,7 @@ DataStore::~DataStore() {
   delete[] imarkerid;
   delete[] individualid;
   delete[] chromosome;
-  if (interactionfromfile!=NULL)
+  if (interactionfromfile!=nullptr)
     delete interactionfromfile;
   delete[] covariate;
   delete cutoff_mult;
@@ -102,6 +102,6 @@ void DataStore::permutePhenotypes() {
   }
 //------------------------------------------------------------------------------
 bool DataStore::totalPermutations() {
-  return (cutoff_app!=NULL && cutoff_mult!=NULL);
+  return (cutoff_app!=nullptr && cutoff_mult!=nullptr);
   }
 //------------------------------------------------------------------------------

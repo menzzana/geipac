@@ -34,16 +34,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/math/distributions/chi_squared.hpp>
 //==============================================================================
 namespace GenEnvGen2I {
-  enum class Phenotype {UNKNOWN, UNAFFECTED,AFFECTED};
-  enum class Gender {UNKNOWN,MALE,FEMALE};
-  enum class Allele {CONTROL_PRIMARY,CONTROL_SECONDARY,CASE_PRIMARY,CASE_SECONDARY,OFFSET=1,NA=0};
-  enum class Ap {A0B0,A1B0,A0B1,A1B1,LENGTH};
-  enum class Apm {A1,B1,A1B1,LENGTH};
-  enum class Lr {BETA0,A1B0,A0B1,A1B1,LENGTH};
-  enum class Lrm {BETA0,A1,B1,A1B1,LENGTH};
-  enum class Zygosity {HOMOZYGOTE_PRIMARY, UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY};
-  enum class RiskFactor {NO,YES,NA=-1};
-  enum class Interaction {NO,YES,NA=-1};
+  enum class Phenotype {
+    UNKNOWN, UNAFFECTED,AFFECTED
+    };
+  enum class Gender {
+    UNKNOWN,MALE,FEMALE
+    };
+  enum class Allele {
+    CONTROL_PRIMARY,CONTROL_SECONDARY,CASE_PRIMARY,CASE_SECONDARY,OFFSET=1,NA=0
+    };
+  enum class Ap {
+    A0B0,A1B0,A0B1,A1B1,LENGTH
+    };
+  enum class Apm {
+    A1,B1,A1B1,LENGTH
+    };
+  enum class Lr {
+    BETA0,A1B0,A0B1,A1B1,LENGTH
+    };
+  enum class Lrm {
+    BETA0,A1,B1,A1B1,LENGTH
+    };
+  enum class Zygosity {
+    HOMOZYGOTE_PRIMARY, UNKNOWN, HETEROZYGOTE, HOMOZYGOTE_SECONDARY
+    };
+  enum class RiskFactor {
+    NO,YES,NA=-1
+    };
+  enum class Interaction {
+    NO,YES,NA=-1
+    };
   #define CHROMOSOME_X "X"
   #define DELIMITER "\t"
   static const char DISEASE='d';
@@ -125,13 +145,12 @@ namespace RESULT_COLUMNS {
     ORMOIH, APM, APML, APMH, APMP, STABLELRM, IND00_0, IND00_1, IND01_0, IND01_1,
     IND10_0, IND10_1, IND11_0, IND11_1, RECODE,
     LENGTH_VALUES
-    };    
-//------------------------------------------------------------------------------
+    };
   bool const PERMUTED_VALUE[] {
-    true, true, true, true, true, true, true, true, true, true, false, false,
-    true, true, true, false, false, false, false, false, false, false, false, false,
-    true, false, false, false, true, false, false, false, false, false, false,
-    false, false, false
+    true, true, true, true, true, true, true, true, true, true, false, false, true,
+    true, true, false, false, false, false, false, false, false, false,
+    false,true, false, false, false, true, false, false, false, false,
+    false, false, false, false, false
     };
 //------------------------------------------------------------------------------
   enum INDEX_TOTAL_PERMUTATIONS {

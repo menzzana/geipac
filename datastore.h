@@ -30,8 +30,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "global.h"
 //==============================================================================
 namespace GenEnvGen2I {
-  enum class Model { NONE,DOMINANT,RECESSIVE };
-  enum class Proportion { DISEASE,EFFECT,CORRECTED };
+  enum class Model {
+    NONE,DOMINANT,RECESSIVE
+    };
+  enum class Proportion {
+    DISEASE,EFFECT,CORRECTED
+    };
   
   static const double THRESHOLD=1E-3;
   static const int ITERATIONS=500;

@@ -69,14 +69,14 @@ int Loader::getColumnSize(string fstr) {
 IMarkerData::IMarkerData() {
   index=-1;
   markerid="";
-  Next=NULL;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
   IMarkerData *data1;
 
-  if (first->getEntry<IMarkerData>(fstr)!=NULL)
-    return NULL;
+  if (first->getEntry<IMarkerData>(fstr)!=nullptr)
+    return nullptr;
   data1=this->push_back<IMarkerData>();
   data1->markerid=boost::algorithm::trim_copy(fstr);
   return data1;
@@ -84,7 +84,7 @@ IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
 //---------------------------------------------------------------------------
 LimitData::LimitData() {
   cutoff_app=cutoff_mult=0;
-  Next=NULL;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 LimitData *LimitData::getSingleRowData(string fstr,...) {
@@ -92,7 +92,7 @@ LimitData *LimitData::getSingleRowData(string fstr,...) {
   LimitData *data1;
   string *splitdata;
 
-  data1=NULL;
+  data1=nullptr;
   splitdata=splitDataString(fstr,MAX_COLUMNS);
   if (app_col<0) {
     for (int i1=0; i1<MAX_COLUMNS; i1++) {
@@ -117,7 +117,7 @@ FAMData::FAMData() {
   phenotype=(int)GenEnvGen2I::Phenotype::UNKNOWN;
   individualid="";
   index=0;
-  Next=NULL;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 FAMData *FAMData::getSingleRowData(string fstr,...) {
@@ -140,7 +140,7 @@ BIMData::BIMData() {
   chromosome="";
   allele1=allele2=index=0;
   markerid="";
-  Next=NULL;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 BIMData *BIMData::getSingleRowData(string fstr,...) {
@@ -165,14 +165,14 @@ bool BIMData::setInteractionMarkerIndex(IMarkerData *imarker) {
   BIMData *bim1;
   int idx;
 
-  if (imarker==NULL)
+  if (imarker==nullptr)
     return true;
-  for (imark1=imarker; imark1!=NULL; imark1=imark1->Next) {
-    for (bim1=this,idx=0; bim1!=NULL; bim1=bim1->Next,idx++)
+  for (imark1=imarker; imark1!=nullptr; imark1=imark1->Next) {
+    for (bim1=this,idx=0; bim1!=nullptr; bim1=bim1->Next,idx++)
       if (boost::iequals(bim1->markerid,imark1->markerid))
         break;
     imark1->index=idx;
-    if (bim1==NULL) {
+    if (bim1==nullptr) {
       WRITELN_VALUE(ERROR_TEXT::MISSING_MARKER,imark1->markerid);
       return false;
       }
@@ -182,9 +182,9 @@ bool BIMData::setInteractionMarkerIndex(IMarkerData *imarker) {
 //---------------------------------------------------------------------------
 BEDData::BEDData() {
   genotype=(int)GenEnvGen2I::Zygosity::UNKNOWN;
-  bim=NULL;
-  fam=NULL;
-  Next=NULL;
+  bim=nullptr;
+  fam=nullptr;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim) {
@@ -205,25 +205,25 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
       THROW_ERROR(ERROR_TEXT::NO_BED_FILE);
     fpr.read(&c1,1);
     individual_major=(c1==0);
-    data1=data2=NULL;
+    data1=data2=nullptr;
     fam1=firstfam;
     bim1=firstbim;
     while (fpr.read(&c1,1)) {
       for (int i1=0; i1<GENOTYPES_PER_BYTE; i1++) {
-        if (bim1==NULL) {
+        if (bim1==nullptr) {
           bim1=firstbim;
           fam1=fam1->Next;
           if (individual_major)
             break;
           }
-        if (fam1==NULL) {
+        if (fam1==nullptr) {
           fam1=firstfam;
           bim1=bim1->Next;
           if (!individual_major)
             break;
           }
         data2=data2->push_back<BEDData>();
-        if (data1==NULL)
+        if (data1==nullptr)
           data1=data2;
         data2->fam=fam1;
         data2->bim=bim1;
@@ -240,7 +240,7 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
     }
   catch(exception &e) {
     cerr << e.what() << endl;
-    return NULL;
+    return nullptr;
     }
   }
 //---------------------------------------------------------------------------
@@ -249,9 +249,9 @@ int **BEDData::getGenotypes(int y,int x) {
   int **genotypedest;
 
   if (y==0 || x==0)
-    return NULL;
+    return nullptr;
   genotypedest=global::make2DArray<int>(y,x);
-  for (bd1=this; bd1!=NULL; bd1=bd1->Next)
+  for (bd1=this; bd1!=nullptr; bd1=bd1->Next)
     genotypedest[bd1->fam->index][bd1->bim->index]=bd1->genotype;
   return genotypedest;
   }
@@ -259,9 +259,9 @@ int **BEDData::getGenotypes(int y,int x) {
 IVariableData::IVariableData() {
   individualid="";
   interaction=ENV_NOVALUE;
-  covariate=NULL;
+  covariate=nullptr;
   ncovariate=0;
-  Next=NULL;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 IVariableData::~IVariableData() {
@@ -273,7 +273,7 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
   IVariableData *data1;
   string *splitdata;
 
-  data1=NULL;
+  data1=nullptr;
   if (indid_col<0)
     ncol=getColumnSize(fstr);
   splitdata=splitDataString(fstr,ncol);
@@ -310,7 +310,7 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
 bool IVariableData::areInteractionsPresent() {
   IVariableData *ivd1;
 
-  for (ivd1=this; ivd1!=NULL; ivd1=ivd1->Next)
+  for (ivd1=this; ivd1!=nullptr; ivd1=ivd1->Next)
     if (ivd1->interaction!=ENV_NOVALUE)
       return true;
   return false;
@@ -318,8 +318,8 @@ bool IVariableData::areInteractionsPresent() {
 //---------------------------------------------------------------------------
 AltPhenotypeData::AltPhenotypeData() {
   naphenotype=0;
-  aphenotype=NULL;
-  Next=NULL;
+  aphenotype=nullptr;
+  Next=nullptr;
   }
 //---------------------------------------------------------------------------
 AltPhenotypeData::~AltPhenotypeData() {
@@ -331,7 +331,7 @@ AltPhenotypeData *AltPhenotypeData::getSingleRowData(string fstr,...) {
   AltPhenotypeData *data1;
   string *splitdata;
 
-  data1=NULL;
+  data1=nullptr;
   if (ncols<0)
     ncols=getColumnSize(fstr);
   splitdata=splitDataString(fstr,ncols);
