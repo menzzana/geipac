@@ -239,7 +239,7 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
     return data1;
     }
   catch(exception &e) {
-    cerr << e.what() << endl;
+    WRITELN("ERROR:" << e.what());
     return nullptr;
     }
   }

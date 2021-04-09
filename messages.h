@@ -39,6 +39,7 @@ namespace CMDOPTIONS {
   const char *const RAWPERMUTATION_OPTION[]={"rawpermutation,w","rawpermutation","Sets if permutation rawdata should be written to result file.\n"};
   const char *const SEED_OPTION[]={"seed,s","seed","Specifies the random seed used by the analysis. Default: 123456789\n"};
   const char *const ALT_PHENOTYPE_OPTION[]={"phenotypes,y","phenotypes","Specifies a file for alternate mutiple phenotypes.\n"};
+  const char *const LOG_OPTION[]={"log,l","Log output","Logs all output information in files\n"};
   }
 //------------------------------------------------------------------------------
 // Error Messages
@@ -52,6 +53,7 @@ namespace ERROR_TEXT {
   const char NO_LIMITS[]="No limit columns could be found in file";
   const char NO_ALT_PHENOTYPE[]="No Alternate phenotype file could be found";
   const char FILE_NOT_FOUND[]="File was not found: %s";
+  const char NO_FILE_LOADED[]="Wrong format of file: %s";
   const char MISSING_INTERACTION_MARKERS[]="Missing interaction marker(s)";
   const char MISSING_MARKER[]="Marker %s not found.";
   }
@@ -61,6 +63,7 @@ namespace FILE_TEXT {
   const char MARKER_PERMUTATION_RESULT[]="/marker_permutation_results.txt";
   const char TOTAL_PERMUTATION_RESULT[]="/total_permutation_results.txt";
   const char OUTPUT_DIRECTORY[]="geipac_results_";
+  const char LOG[]="/log.txt";
   }
 //------------------------------------------------------------------------------
 // Status Messages
@@ -81,25 +84,26 @@ namespace STATUS_TEXT {
 // Header Messages
 //------------------------------------------------------------------------------
 namespace HEADER_TEXT {
-  const char RUN[]=              "Running GEIPAC with the following parameters:";
-  const char FILE_BASE[]=        "File base:                %s";
-  const char INTERACTIONFILE[]=  "Interaction file:         %s";
-  const char IMARKERFILE[]=      "Interaction Marker file:  %s";
-  const char INTERACTION[]=      "Interaction:              %s";
+  const char RUN[]=            "Running GEIPAC with the following parameters:";
+  const char FILE_BASE[]=      "File base:                %s";
+  const char INTERACTIONFILE[]="Interaction file:         %s";
+  const char IMARKERFILE[]=    "Interaction Marker file:  %s";
+  const char INTERACTION[]=    "Interaction:              %s";
   const char FROMGENEDATA[]="From genetic data";
   const char FROMVARFILE[]="From interaction variable file";
-  const char LIMIT[]=            "Limit file:               %s";
-  const char ALTPHENOTYPE[]=     "Alternate Phenotype file: %s";
-  const char OUTPUT[]=           "Output directory:         %s";
-  const char PERMUTATION[]=      "Permutations:             %d";
-  const char SEED[]=             "Seed:                     %d";
-  const char MODEL[]=            "Model Type:               %s";
-  const char CUTOFF[]=           "Cutoff:                   %d";
-  const char ITERATIONS[]=       "LR Iterations:            %d";
-  const char THRESHOLD[]=        "LR Threshold:             %f";
-  const char APPNEG[]=           "Include APP negative:     %s";
-  const char APCALC[]=           "AP Calculation method:    %s";
-  const char PROCESSES[]=        "Processes:                %s";
+  const char COVARIATE[]=      "Covariates:               %s";
+  const char LIMIT[]=          "Limit file:               %s";
+  const char ALTPHENOTYPE[]=   "Alternate Phenotype file: %s";
+  const char OUTPUT[]=         "Output directory:         %s";
+  const char PERMUTATION[]=    "Permutations:             %d";
+  const char SEED[]=           "Seed:                     %d";
+  const char MODEL[]=          "Model Type:               %s";
+  const char CUTOFF[]=         "Cutoff:                   %d";
+  const char ITERATIONS[]=     "LR Iterations:            %d";
+  const char THRESHOLD[]=      "LR Threshold:             %f";
+  const char APPNEG[]=         "Include APP negative:     %s";
+  const char APCALC[]=         "AP Calculation method:    %s";
+  const char PROCESSES[]=      "Processes:                %s";
   }
 //------------------------------------------------------------------------------
 #endif // MESSAGES_H

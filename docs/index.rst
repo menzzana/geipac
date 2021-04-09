@@ -140,6 +140,8 @@ OPTIONS
   **Default:** 123456789.
 :-y,--phenotypes <filename>: Specifies a file for alternate mutiple phenotypes.
 
+:-l,--log: Logs all output information in files.
+
 RECODE
 ======
 
@@ -212,6 +214,7 @@ Should only contain one column with marker names and no header.
 
 ALTERNATIVE MULTIPLE PHENOTYPE FILES
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Currently not implemented**
 This file contains multiple phenotypes for the individuals
 in case you would like to have several predictors.
 The file has the same format as described using the plink format and

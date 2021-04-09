@@ -122,6 +122,8 @@ class Loader {
             data1=data2;
           }
         fpr.close();
+        if (data1==nullptr)
+          THROW_ERROR_VALUE(ERROR_TEXT::NO_FILE_LOADED,filename);
         return data1;
         }
       catch(exception &e) {

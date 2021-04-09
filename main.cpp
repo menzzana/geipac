@@ -35,12 +35,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace prgm_opt=boost::program_options;
 //------------------------------------------------------------------------------
 GenEnvGen2I::DataStore datastore;
-ofstream fpresult,fppermutation,fptotalpermutation;
+ofstream fpresult,fppermutation,fptotalpermutation,fplog;
 //------------------------------------------------------------------------------
 void CleanUp(bool exitvalue) {
   fpresult.close();
   fppermutation.close();
   fptotalpermutation.close();
+  fplog.close();
   exit(exitvalue);
   }
 //------------------------------------------------------------------------------
@@ -80,7 +81,11 @@ int main(int argc, char **argv) {
       (CMDOPTIONS::MARKER_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::MARKER_OPTION[2])
       (CMDOPTIONS::RAWPERMUTATION_OPTION[0],CMDOPTIONS::RAWPERMUTATION_OPTION[2])
       (CMDOPTIONS::SEED_OPTION[0],prgm_opt::value<double>()->required(),CMDOPTIONS::SEED_OPTION[2])
-      (CMDOPTIONS::ALT_PHENOTYPE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::ALT_PHENOTYPE_OPTION[2]);
+      (CMDOPTIONS::LOG_OPTION[0],CMDOPTIONS::LOG_OPTION[2])
+      /* TODO: Currently not implemented. Import to datastore class is setup but no analysis using alternative phenotypes is performed
+      (CMDOPTIONS::ALT_PHENOTYPE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::ALT_PHENOTYPE_OPTION[2])
+      */
+      ;
     prgm_opt::store(prgm_opt::parse_command_line(argc,argv,options),option_map);
     printVersion();
     if (option_map.count(CMDOPTIONS::HELP_OPTION[1])) {
@@ -135,7 +140,17 @@ int main(int argc, char **argv) {
       aphenotype=AltPhenotypeData::loadFile<AltPhenotypeData>(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>());
       if (aphenotype==nullptr)
         THROW_ERROR(ERROR_TEXT::NO_ALT_PHENOTYPE);
-      }      
+      }
+    // set output
+    outputdir=Loader::setOutputDirectory(outputdir);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::RESULT);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::MARKER_PERMUTATION_RESULT);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT);
+    Loader::deleteResultFile(outputdir+FILE_TEXT::LOG);
+    if (option_map.count(CMDOPTIONS::LOG_OPTION[1])) {
+      fplog.open(outputdir+FILE_TEXT::LOG);
+      clog.rdbuf(fplog.rdbuf());
+      }
     // Check received data
     if (plink==nullptr)
       THROW_ERROR(ERROR_TEXT::NO_PLINK_FILES);
@@ -146,11 +161,6 @@ int main(int argc, char **argv) {
     if (!ivariable->areAllIndividualPresent<IVariableData,FAMData>(plink->fam) ||
         !aphenotype->areAllIndividualPresent<AltPhenotypeData,FAMData>(plink->fam))
       THROW_ERROR(ERROR_TEXT::UNKNOWN_INDIVIDUAL);
-    // set output
-    outputdir=Loader::setOutputDirectory(outputdir);
-    Loader::deleteResultFile(outputdir+FILE_TEXT::RESULT);
-    Loader::deleteResultFile(outputdir+FILE_TEXT::MARKER_PERMUTATION_RESULT);
-    Loader::deleteResultFile(outputdir+FILE_TEXT::TOTAL_PERMUTATION_RESULT);
     // Transfer data to analysis class
     datastore.nindividualid=plink->fam->Length<FAMData>();
     datastore.nlimit=limit->Length<LimitData>();
@@ -188,6 +198,7 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::INTERACTION,(datastore.interactionfromfile==nullptr?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
+    WRITELN_VALUE(HEADER_TEXT::COVARIATE,(datastore.covariate==nullptr?"None":HEADER_TEXT::FROMVARFILE));
     WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
     WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
@@ -199,7 +210,9 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
     WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::Proportion::DISEASE?GenEnvGen2I::DISEASE_TEXT:
       datastore.apcalculation==GenEnvGen2I::Proportion::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
+    /* TODO: Currently not implemented. Import to datastore class is setup but no analysis using alternative phenotypes is performed
     WRITELN_VALUE(HEADER_TEXT::ALTPHENOTYPE,(aphenotype==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::ALT_PHENOTYPE_OPTION[1]].as<string>())));
+    */
     // Delete pointers structures for import of data
     imarker->Delete<IMarkerData>();
     limit->Delete<LimitData>();
@@ -247,7 +260,7 @@ int main(int argc, char **argv) {
       #ifndef SERIAL
       if (omp_get_thread_num()==0)
       #endif
-        clog<<endl;
+        WRITELN("");
         }
       delete myanalysis;
       }
@@ -255,7 +268,7 @@ int main(int argc, char **argv) {
     CleanUp(EXIT_SUCCESS);
     }
   catch(exception &e) {
-    cerr << e.what() << endl;
+    WRITELN("ERROR:" << e.what());
     CleanUp(EXIT_FAILURE);
     }
   }
