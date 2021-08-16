@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace std;
 
 void printVersion() {
-  clog << "GEIPAC V@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@-@GIT_HASH@" << endl;
+  clog << "Geipac V@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@-@GIT_HASH@" << endl;
   }
 //------------------------------------------------------------------------------
 #endif // VERSION_CONFIG_H

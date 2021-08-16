@@ -56,7 +56,8 @@ namespace GenEnvGen2I {
       
       string *markerid,*individualid,*chromosome;
       int *imarkerid,*gender,*interactionfromfile;
-      int **phenotype,**genotype,**covariate,***aphenotype;
+      int **phenotype,**genotype,***aphenotype;
+      double **covariate;
       double *cutoff_mult,*cutoff_app,*permuted_mult,*permuted_app;
       char *allele1,*allele2;
     

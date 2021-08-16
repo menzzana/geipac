@@ -17,8 +17,8 @@ which was not present in the original implementation.
    
 #. Hössjer, O., Kockum, I., Alfredsson, L., et al. (2016). A General Framework
    for and New Normalization of Attributable Proportion.
-   Epidemiologic Methods, 0(0), pp. -. Retrieved 13 Oct. 2017,
-   from doi:10.1515/em-2015-0028
+   Epidemiologic Methods, 6(1). Published 23 Dec. 2016,
+   doi:10.1515/em-2015-0028
 
 BUILDING from source
 ====================
@@ -44,13 +44,17 @@ Geipac has only been tested with the above mentioned versions, but may function 
 In order to build just run::
 
   mkdir [binary dir]
-  cmake CMakeLists.txt -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>" -B [binary dir]
   cd [binary dir]
+  cmake .. -DEIGEN_INCLUDE_DIR="<Eigen3 include directory>"
   make
 
-If you would like to link to static libraries use the flag::
+If you would like to build a static executable use the flag::
 
-  cmake ... -DSTATIC=yes
+  cmake ... -DBUILD_STATIC_EXE=ON
+
+If you would like to build a serial executable use the flag::
+
+  cmake ... -DBUILD_SERIAL_EXE=ON
 
 USAGE
 =====
@@ -81,9 +85,11 @@ OPTIONS
   *dom* for dominant
   
   *rec* for recessive.
-:-i,--ifile <file>: Specifies the input interaction
+:-i,--interactionfile <file>: Specifies the input interaction
   variable file. If no interaction file is defined, interactions
   will be calculated from available data.
+:-v,--covariatefile <file>: Specifies the covariates
+  variable file.
 :-o,--outputdir <path>: Specifies the directory where the
   output files will be stored. If none is entered a
   result directory will be created automatically.
@@ -172,23 +178,41 @@ to interact with the data.
 INTERACTION VARIABLE FILE
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The interaction variable files contains individual IDs, environment variable and
+The interaction variable files contains individual IDs, environment variable.
+The first line of the file should depict the specific column data, and all
+columns should be separated by TAB.
+Individuals column should be named INDID.
+Environment variable column should be named ENV.
+
+Example::
+
+  INDID     ENV
+  04D01801  0
+ 
+First column is Individual ID, and 2nd is Environment.
+If no interaction variable file is present, the interaction will be calculated
+from the available data.
+
+COVARIATE FILE
+^^^^^^^^^^^^^^
+
+The covariate file contains individual IDs and
 covariates.
 The first line of the file should depict the specific column data, and all
 columns should be separated by TAB.
 Individuals columns should be name INDID.
-Environment variable should be name ENV
 All other columns will be treated as covariate columns
 
 Example::
 
-  INDID     ENV COV1  HEIGHT  EYE_COLOR
-  04D01801  0   1     0       1
+  INDID     COV1  HEIGHT  EYE_COLOR
+  04D01801  1.34  0       1
  
-First column is Individual ID, and 2nd is Environment.
+First column is Individual ID.
 COV1, HEIGHT and EYE_COLOR are all covariates.
-If no interaction variable file is present, the interaction will be calculated
-from the available data.
+If no covariate file is present, covariates will not be considered in the
+calculations.
+Covariates can be entered as decimal numbers.
 
 LIMIT FILE
 ^^^^^^^^^^
@@ -251,4 +275,4 @@ henric@zazzi.se
 AVAILABILITY
 ============
 
-The main web site for GEIPAC is https://bitbucket.org/menzzana/geipac
+The main web site for GEIPAC is https://github.com/menzzana/geipac

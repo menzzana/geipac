@@ -239,15 +239,28 @@ class IVariableData : public Loader {
     #define INDIVIDUAL_IDENTITY "INDID"
     #define NA "NA"
     static const int ENV_NOVALUE=-1;
-    static const int COV_NOVALUE=0;
     string individualid;
-    int interaction,*covariate,ncovariate;
+    int interaction;
     IVariableData *Next;
 
     IVariableData();
-    ~IVariableData();
     IVariableData *getSingleRowData(string fstr,...);
     bool areInteractionsPresent();
+  };
+//------------------------------------------------------------------------------
+class CovariateData : public Loader {
+  public:
+    #define INDIVIDUAL_IDENTITY "INDID"
+    #define NA "NA"
+    static const int COV_NOVALUE=0;
+    string individualid;
+    double *covariate;
+    int ncovariate;
+    CovariateData *Next;
+
+    CovariateData();
+    ~CovariateData();
+    CovariateData *getSingleRowData(string fstr,...);
   };
 //------------------------------------------------------------------------------
 class AltPhenotypeData : public Loader {

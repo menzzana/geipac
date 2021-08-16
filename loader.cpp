@@ -259,13 +259,7 @@ int **BEDData::getGenotypes(int y,int x) {
 IVariableData::IVariableData() {
   individualid="";
   interaction=ENV_NOVALUE;
-  covariate=nullptr;
-  ncovariate=0;
   Next=nullptr;
-  }
-//---------------------------------------------------------------------------
-IVariableData::~IVariableData() {
-  delete covariate;
   }
 //---------------------------------------------------------------------------
 IVariableData *IVariableData::getSingleRowData(string fstr,...) {
@@ -291,17 +285,6 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
     if (env_col>=0)
       if (!boost::iequals(splitdata[env_col].c_str(),NA))
         data1->interaction=atoi(splitdata[env_col].c_str());
-    data1->ncovariate=ncol-(env_col<0?1:2);
-    data1->covariate=new int[data1->ncovariate];
-    for (int i1=0,i2=0; i1<ncol; i1++) {
-      if (i1==env_col || i1==indid_col)
-        continue;
-      if (boost::iequals(splitdata[i1].c_str(),NA))
-        data1->covariate[i2]=COV_NOVALUE;
-      else
-        data1->covariate[i2]=atoi(splitdata[i1].c_str());
-      i2++;
-      }
     }
   delete[] splitdata;
   return data1;
@@ -314,6 +297,49 @@ bool IVariableData::areInteractionsPresent() {
     if (ivd1->interaction!=ENV_NOVALUE)
       return true;
   return false;
+  }
+//---------------------------------------------------------------------------
+CovariateData::CovariateData() {
+  individualid="";
+  covariate=nullptr;
+  ncovariate=0;
+  Next=nullptr;
+  }
+//---------------------------------------------------------------------------
+CovariateData::~CovariateData() {
+  delete covariate;
+  }
+//---------------------------------------------------------------------------
+CovariateData *CovariateData::getSingleRowData(string fstr,...) {
+  static int indid_col=-1,ncol=0;
+  CovariateData *data1;
+  string *splitdata;
+
+  data1=nullptr;
+  if (indid_col<0)
+    ncol=getColumnSize(fstr);
+  splitdata=splitDataString(fstr,ncol);
+  if (indid_col<0) {
+    for (int i1=1; i1<ncol; i1++)
+      if (boost::iequals(splitdata[i1],INDIVIDUAL_IDENTITY))
+        indid_col=i1;
+    }
+  else {
+    data1=this->push_back<CovariateData>();
+    data1->individualid=splitdata[indid_col];
+    data1->covariate=new double[data1->ncovariate];
+    for (int i1=0,i2=0; i1<ncol; i1++) {
+      if (i1==indid_col)
+        continue;
+      if (boost::iequals(splitdata[i1].c_str(),NA))
+        data1->covariate[i2]=COV_NOVALUE;
+      else
+        data1->covariate[i2]=atof(splitdata[i1].c_str());
+      i2++;
+      }
+    }
+  delete[] splitdata;
+  return data1;
   }
 //---------------------------------------------------------------------------
 AltPhenotypeData::AltPhenotypeData() {

@@ -1,10 +1,7 @@
 ###############################################################################
-# Set version
+# Create configuration header to include version number
 ###############################################################################
 
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "2")
-set(VERSION_PATCH "0")
 set(GIT_HASH "Unknown")
 find_package(Git)
 if(GIT_FOUND)

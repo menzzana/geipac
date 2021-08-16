@@ -5,16 +5,23 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=c++11")
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
 ###############################################################################
-# Link to static libraries
+# Build static libraries
 ###############################################################################
-
-if (STATIC)
+if (BUILD_STATIC_EXE)
+  message(STATUS "Geipac will be built with static libraries.")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
   set(Boost_USE_STATIC_LIBS ON)
   set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  set(BUILD_SHARED_LIBS OFF)
   set(CMAKE_EXE_LINKER_FLAGS "-static")
-endif(STATIC)
+  set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)
+  set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_C_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+else (BUILD_STATIC_EXE)
+  message(STATUS "Geipac will be built with dynamic libraries.")
+endif(BUILD_STATIC_EXE)
 
 ###############################################################################
 # Check for dependencies
@@ -35,23 +42,33 @@ else(EIGEN3_INCLUDE_DIR)
 endif(EIGEN3_INCLUDE_DIR)
 
 ###############################################################################
-# if OpenMP not found the code will be compiled for serial execution
-# Comment the find of OpenMP to compile and run serially
+# if OpenMP not found or serial was selected 
+# the code will be compiled for serial execution
 ###############################################################################
 
 find_package(OpenMP)
-if (OPENMP_FOUND)
-  message(STATUS "Package OpenMP found.")
+if (NOT OPENMP_FOUND OR BUILD_SERIAL_EXE)
+  message(STATUS "Geipac will be built for serial execution.")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSERIAL")  
+else (NOT OPENMP_FOUND OR BUILD_SERIAL_EXE)
+  message(STATUS "Geipac will be built with OpenMP for parallel execution.")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-else(OPENMP_FOUND)
-  message(STATUS "The package OpenMP was not found.")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSERIAL")
-endif(OPENMP_FOUND)
+endif(NOT OPENMP_FOUND OR BUILD_SERIAL_EXE)
+
+###############################################################################
+# Set version
+###############################################################################
+
+set(VERSION_MAJOR "0")
+set(VERSION_MINOR "3")
+set(VERSION_PATCH "1")
+include(version)
+message(STATUS "Building Geipac V${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${GIT_HASH}")
 
 ###############################################################################
 # Link and include
 ###############################################################################
-include(version)
+
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 link_directories(${Boost_INCLUDE_DIRS})

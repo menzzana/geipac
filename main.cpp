@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
   prgm_opt::options_description options("Options");
   IMarkerData *imarker;
   IVariableData *ivariable;
+  CovariateData *covariate;
   LimitData *limit;
   AltPhenotypeData *aphenotype;
   BEDData *plink;
@@ -59,6 +60,7 @@ int main(int argc, char **argv) {
     // Initialize
     imarker=nullptr;
     ivariable=nullptr;
+    covariate=nullptr;
     limit=nullptr;
     plink=nullptr;
     aphenotype=nullptr;
@@ -71,6 +73,7 @@ int main(int argc, char **argv) {
       (CMDOPTIONS::BASE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::BASE_OPTION[2])
       (CMDOPTIONS::MODEL_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::MODEL_OPTION[2])
       (CMDOPTIONS::INTERACTION_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::INTERACTION_OPTION[2])
+      (CMDOPTIONS::COVARIATE_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::COVARIATE_OPTION[2])
       (CMDOPTIONS::OUTPUT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::OUTPUT_OPTION[2])
       (CMDOPTIONS::PERMUTATION_OPTION[0],prgm_opt::value<int>()->required(),CMDOPTIONS::PERMUTATION_OPTION[2])
       (CMDOPTIONS::LIMIT_OPTION[0],prgm_opt::value<string>()->required(),CMDOPTIONS::LIMIT_OPTION[2])
@@ -88,6 +91,10 @@ int main(int argc, char **argv) {
       ;
     prgm_opt::store(prgm_opt::parse_command_line(argc,argv,options),option_map);
     printVersion();
+    if (argc==1) {
+      WRITELN(ERROR_TEXT::NO_OPTIONS);
+      CleanUp(EXIT_SUCCESS);
+      }
     if (option_map.count(CMDOPTIONS::HELP_OPTION[1])) {
       cout << options;
       CleanUp(EXIT_SUCCESS);
@@ -122,6 +129,8 @@ int main(int argc, char **argv) {
       imarker=IMarkerData::loadFile<IMarkerData>(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>());
     if (option_map.count(CMDOPTIONS::INTERACTION_OPTION[1]))
       ivariable=IVariableData::loadFile<IVariableData>(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>());
+    if (option_map.count(CMDOPTIONS::COVARIATE_OPTION[1]))
+      covariate=CovariateData::loadFile<CovariateData>(option_map[CMDOPTIONS::COVARIATE_OPTION[1]].as<string>());
     if (option_map.count(CMDOPTIONS::LIMIT_OPTION[1])) {
       limit=LimitData::loadFile<LimitData>(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>());
       if (limit==nullptr)
@@ -159,13 +168,14 @@ int main(int argc, char **argv) {
     if (!plink->bim->setInteractionMarkerIndex(imarker))
       THROW_ERROR(ERROR_TEXT::MISSING_INTERACTION_MARKERS);
     if (!ivariable->areAllIndividualPresent<IVariableData,FAMData>(plink->fam) ||
-        !aphenotype->areAllIndividualPresent<AltPhenotypeData,FAMData>(plink->fam))
+        !aphenotype->areAllIndividualPresent<AltPhenotypeData,FAMData>(plink->fam) ||
+        !covariate->areAllIndividualPresent<CovariateData,FAMData>(plink->fam))
       THROW_ERROR(ERROR_TEXT::UNKNOWN_INDIVIDUAL);
     // Transfer data to analysis class
     datastore.nindividualid=plink->fam->Length<FAMData>();
     datastore.nlimit=limit->Length<LimitData>();
     datastore.nmarkerid=plink->bim->Length<BIMData>();
-    datastore.ncovariate=ivariable==nullptr?0:ivariable->ncovariate;
+    datastore.ncovariate=covariate==nullptr?0:covariate->ncovariate;
     if (aphenotype!=nullptr)
       datastore.naphenotype=aphenotype->naphenotype;
     datastore.initialize();
@@ -187,7 +197,7 @@ int main(int argc, char **argv) {
     datastore.markerid=plink->bim->get<string>(&BIMData::markerid,datastore.nmarkerid,nullptr);
     datastore.chromosome=plink->bim->get<string>(&BIMData::chromosome,datastore.nmarkerid,nullptr);
     datastore.genotype=plink->getGenotypes(datastore.nindividualid,datastore.nmarkerid);
-    datastore.covariate=ivariable->get<int>(&IVariableData::covariate,datastore.nindividualid,datastore.ncovariate,nullptr);
+    datastore.covariate=covariate->get<double>(&CovariateData::covariate,datastore.nindividualid,datastore.ncovariate,nullptr);
     if (aphenotype!=nullptr)
       aphenotype->get<int>(&AltPhenotypeData::aphenotype,datastore.nindividualid,datastore.naphenotype,datastore.aphenotype[GenEnvGen2I::ORIGINAL]);
     if (ivariable->areInteractionsPresent() && imarker==nullptr)
@@ -195,11 +205,11 @@ int main(int argc, char **argv) {
     // Print some information message.
     WRITELN(HEADER_TEXT::RUN);
     WRITELN_VALUE(HEADER_TEXT::FILE_BASE,global::getFileName(option_map[CMDOPTIONS::BASE_OPTION[1]].as<string>()));
-    WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
-    WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::IMARKERFILE,(imarker==nullptr?HEADER_TEXT::NONE:global::getFileName(option_map[CMDOPTIONS::MARKER_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::INTERACTIONFILE,(ivariable==nullptr?HEADER_TEXT::NONE:global::getFileName(option_map[CMDOPTIONS::INTERACTION_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::INTERACTION,(datastore.interactionfromfile==nullptr?HEADER_TEXT::FROMGENEDATA:HEADER_TEXT::FROMVARFILE));
-    WRITELN_VALUE(HEADER_TEXT::COVARIATE,(datastore.covariate==nullptr?"None":HEADER_TEXT::FROMVARFILE));
-    WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==nullptr?"None":global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::COVARIATE,(datastore.covariate==nullptr?HEADER_TEXT::NONE:global::getFileName(option_map[CMDOPTIONS::COVARIATE_OPTION[1]].as<string>())));
+    WRITELN_VALUE(HEADER_TEXT::LIMIT,(limit==nullptr?HEADER_TEXT::NONE:global::getFileName(option_map[CMDOPTIONS::LIMIT_OPTION[1]].as<string>())));
     WRITELN_VALUE(HEADER_TEXT::OUTPUT,outputdir);
     WRITELN_VALUE(HEADER_TEXT::PERMUTATION,datastore.permutations);
     WRITELN_VALUE(HEADER_TEXT::SEED,abs(datastore.randomseed));
@@ -207,7 +217,7 @@ int main(int argc, char **argv) {
     WRITELN_VALUE(HEADER_TEXT::CUTOFF,datastore.cutoff);
     WRITELN_VALUE(HEADER_TEXT::ITERATIONS,datastore.iterations);
     WRITELN_VALUE(HEADER_TEXT::THRESHOLD,datastore.threshold);
-    WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?"Yes":"No"));
+    WRITELN_VALUE(HEADER_TEXT::APPNEG,(datastore.appnegative?HEADER_TEXT::YES:HEADER_TEXT::NO));
     WRITELN_VALUE(HEADER_TEXT::APCALC,(datastore.apcalculation==GenEnvGen2I::Proportion::DISEASE?GenEnvGen2I::DISEASE_TEXT:
       datastore.apcalculation==GenEnvGen2I::Proportion::EFFECT?GenEnvGen2I::EFFECT_TEXT:GenEnvGen2I::CORRECTED_TEXT));
     /* TODO: Currently not implemented. Import to datastore class is setup but no analysis using alternative phenotypes is performed
@@ -220,6 +230,7 @@ int main(int argc, char **argv) {
     plink->bim->Delete<BIMData>();
     plink->Delete<BEDData>();
     ivariable->Delete<IVariableData>();
+    covariate->Delete<CovariateData>();
     aphenotype->Delete<AltPhenotypeData>();
     // Output file headers
     fpresult.open((outputdir+FILE_TEXT::RESULT).c_str());
@@ -268,7 +279,7 @@ int main(int argc, char **argv) {
     CleanUp(EXIT_SUCCESS);
     }
   catch(exception &e) {
-    WRITELN("ERROR:" << e.what());
+    WRITELN_VALUE("ERROR: ",e.what());
     CleanUp(EXIT_FAILURE);
     }
   }
