@@ -52,7 +52,7 @@ void Analysis::run(int interactivemarkeridx) {
   double perm_value[RESULT_COLUMNS::LENGTH_VALUES];
 
   setInteraction(interactivemarkeridx);
-  #pragma omp for
+  #pragma omp for ordered
     for (int markeridx=0; markeridx<data->nmarkerid; markeridx++) {
       for (int permidx=0; permidx<=data->permutations; permidx++) {
         if (permidx==0)
@@ -65,12 +65,12 @@ void Analysis::run(int interactivemarkeridx) {
         results_text[RESULT_COLUMNS::PERM]=permidx==0?STATUS_TEXT::NO_PERMUTATION:global::to_string(permidx);
         analyzeData(markeridx,data->phenotype[permidx],results_text,results_value);
         if (permidx==0 || data->rawpermutation) {
-          #pragma omp critical
-            {
-            printResults(*data->wres,results_text,RESULT_COLUMNS::LENGTH_TEXT);
-            printResults(*data->wres,results_value,RESULT_COLUMNS::LENGTH_VALUES);
-            *data->wres<<endl;
-            }
+          ostringstream wbuf;
+          printResults(wbuf,results_text,RESULT_COLUMNS::LENGTH_TEXT);
+          printResults(wbuf,results_value,RESULT_COLUMNS::LENGTH_VALUES);
+          wbuf<<endl;
+          #pragma omp ordered
+          *data->wres<<wbuf.str();
           }
         if (data->permutations==0)
           continue;
@@ -114,12 +114,12 @@ void Analysis::run(int interactivemarkeridx) {
         for (int residx=0; residx<RESULT_COLUMNS::LENGTH_VALUES; residx++)
           if (RESULT_COLUMNS::PERMUTED_VALUE[residx] && residx!=RESULT_COLUMNS::APP && residx!=RESULT_COLUMNS::MULT)
             perm_value[residx]=((double)npermuted[residx])/(double)data->permutations;
-        #pragma omp critical
-          {
-          printResults(*data->wperm,results_text,RESULT_COLUMNS::PERM);
-          printResults(*data->wperm,perm_value,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
-          *data->wperm<<endl;
-          }
+        ostringstream wbuf;
+        printResults(wbuf,results_text,RESULT_COLUMNS::PERM);
+        printResults(wbuf,perm_value,RESULT_COLUMNS::LENGTH_VALUES,RESULT_COLUMNS::PERMUTED_VALUE);
+        wbuf<<endl;
+        #pragma omp ordered
+        *data->wperm<<wbuf.str();
         }
     }
   }

@@ -57,6 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WRITELN(text) clog << text << endl
 #define WRITE(text) clog << text
 #define WRITELN_VALUE(text,value) clog << global::to_string(boost::format(text) % value) << endl
+#define WRITELN_VALUE(text,value) clog << global::to_string(boost::format(text) % value) << endl
 //------------------------------------------------------------------------------
 using namespace std;
 //==============================================================================

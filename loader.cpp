@@ -69,7 +69,7 @@ int Loader::getColumnSize(string fstr) {
 IMarkerData::IMarkerData() {
   index=-1;
   markerid="";
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
@@ -84,7 +84,7 @@ IMarkerData *IMarkerData::getSingleRowData(string fstr,IMarkerData *first) {
 //---------------------------------------------------------------------------
 LimitData::LimitData() {
   cutoff_app=cutoff_mult=0;
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 LimitData *LimitData::getSingleRowData(string fstr,...) {
@@ -117,7 +117,7 @@ FAMData::FAMData() {
   phenotype=(int)GenEnvGen2I::Phenotype::UNKNOWN;
   individualid="";
   index=0;
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 FAMData *FAMData::getSingleRowData(string fstr,...) {
@@ -140,7 +140,7 @@ BIMData::BIMData() {
   chromosome="";
   allele1=allele2=index=0;
   markerid="";
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 BIMData *BIMData::getSingleRowData(string fstr,...) {
@@ -167,8 +167,8 @@ bool BIMData::setInteractionMarkerIndex(IMarkerData *imarker) {
 
   if (imarker==nullptr)
     return true;
-  for (imark1=imarker; imark1!=nullptr; imark1=imark1->Next) {
-    for (bim1=this,idx=0; bim1!=nullptr; bim1=bim1->Next,idx++)
+  for (imark1=imarker; imark1!=nullptr; imark1=imark1->next) {
+    for (bim1=this,idx=0; bim1!=nullptr; bim1=bim1->next,idx++)
       if (boost::iequals(bim1->markerid,imark1->markerid))
         break;
     imark1->index=idx;
@@ -184,7 +184,7 @@ BEDData::BEDData() {
   genotype=(int)GenEnvGen2I::Zygosity::UNKNOWN;
   bim=nullptr;
   fam=nullptr;
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firstbim) {
@@ -212,13 +212,13 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
       for (int i1=0; i1<GENOTYPES_PER_BYTE; i1++) {
         if (bim1==nullptr) {
           bim1=firstbim;
-          fam1=fam1->Next;
+          fam1=fam1->next;
           if (individual_major)
             break;
           }
         if (fam1==nullptr) {
           fam1=firstfam;
-          bim1=bim1->Next;
+          bim1=bim1->next;
           if (!individual_major)
             break;
           }
@@ -230,9 +230,9 @@ BEDData *BEDData::loadBinaryFile(string filename,FAMData *firstfam,BIMData *firs
         data2->genotype=(c1 & ALL_BIT_SET);
         c1=(c1>>BITS_PER_GENOTYPE);
         if (individual_major)
-          bim1=bim1->Next;
+          bim1=bim1->next;
         else
-          fam1=fam1->Next;
+          fam1=fam1->next;
         }
       }
     fpr.close();
@@ -251,7 +251,7 @@ int **BEDData::getGenotypes(int y,int x) {
   if (y==0 || x==0)
     return nullptr;
   genotypedest=global::make2DArray<int>(y,x);
-  for (bd1=this; bd1!=nullptr; bd1=bd1->Next)
+  for (bd1=this; bd1!=nullptr; bd1=bd1->next)
     genotypedest[bd1->fam->index][bd1->bim->index]=bd1->genotype;
   return genotypedest;
   }
@@ -259,7 +259,7 @@ int **BEDData::getGenotypes(int y,int x) {
 IVariableData::IVariableData() {
   individualid="";
   interaction=ENV_NOVALUE;
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 IVariableData *IVariableData::getSingleRowData(string fstr,...) {
@@ -293,7 +293,7 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
 bool IVariableData::areInteractionsPresent() {
   IVariableData *ivd1;
 
-  for (ivd1=this; ivd1!=nullptr; ivd1=ivd1->Next)
+  for (ivd1=this; ivd1!=nullptr; ivd1=ivd1->next)
     if (ivd1->interaction!=ENV_NOVALUE)
       return true;
   return false;
@@ -303,7 +303,7 @@ CovariateData::CovariateData() {
   individualid="";
   covariate=nullptr;
   ncovariate=0;
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 CovariateData::~CovariateData() {
@@ -345,7 +345,7 @@ CovariateData *CovariateData::getSingleRowData(string fstr,...) {
 AltPhenotypeData::AltPhenotypeData() {
   naphenotype=0;
   aphenotype=nullptr;
-  Next=nullptr;
+  next=nullptr;
   }
 //---------------------------------------------------------------------------
 AltPhenotypeData::~AltPhenotypeData() {
