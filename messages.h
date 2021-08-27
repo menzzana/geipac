@@ -58,6 +58,7 @@ namespace ERROR_TEXT {
   const char MISSING_INTERACTION_MARKERS[]="Missing interaction marker(s)";
   const char MISSING_MARKER[]="Marker %s not found.";
   const char NO_OPTIONS[]="Try 'geipac --help' for more information.";
+  const char INTERACTION_MULT_COLUMN[]="WARNING: Interaction file contains multiple columns which will be ignored";
   }
 //------------------------------------------------------------------------------
 namespace FILE_TEXT {

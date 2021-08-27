@@ -60,7 +60,7 @@ class Loader {
         exit(EXIT_FAILURE);
         }
       /*
-       Check if this==nullptr does not work in later GNU C++ (v6+)
+       Check if this!=nullptr does not work in later GNU C++ (v6+)
        Therefore the -fno-delete-null-pointer-checks was added as compiler parameter
        See CMakeLists.txt
       */

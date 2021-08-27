@@ -268,8 +268,11 @@ IVariableData *IVariableData::getSingleRowData(string fstr,...) {
   string *splitdata;
 
   data1=nullptr;
-  if (indid_col<0)
+  if (indid_col<0) {
     ncol=getColumnSize(fstr);
+    if (ncol>2)
+      WRITELN(ERROR_TEXT::INTERACTION_MULT_COLUMN);
+    }
   splitdata=splitDataString(fstr,ncol);
   if (indid_col<0) {
     for (int i1=1; i1<ncol; i1++) {

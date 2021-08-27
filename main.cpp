@@ -257,21 +257,17 @@ int main(int argc, char **argv) {
     #pragma omp parallel
       {
       #ifndef SERIAL
-      #pragma omp master
+        #pragma omp master
         WRITELN_VALUE(HEADER_TEXT::PROCESSES,omp_get_num_threads());
       #endif
       GenEnvGen2I::Analysis *myanalysis;
       myanalysis=new GenEnvGen2I::Analysis(&datastore);
       for (int imarkeridx=0; imarkeridx<datastore.nimarkerid; imarkeridx++) {
-        #ifndef SERIAL
         #pragma omp master
-        #endif
-          WRITELN_VALUE(STATUS_TEXT::IMARKER,datastore.markerid[datastore.imarkerid[imarkeridx]]);
+        WRITELN_VALUE(STATUS_TEXT::IMARKER,datastore.markerid[datastore.imarkerid[imarkeridx]]);
         myanalysis->run(datastore.imarkerid[imarkeridx]);
-        #ifndef SERIAL
         #pragma omp master
-        #endif
-          WRITELN("");
+        WRITELN("");
         }
       delete myanalysis;
       }
